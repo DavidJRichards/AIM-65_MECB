@@ -1,0 +1,2165 @@
+
+; L = lable
+; X = to delete.
+; ; = No requirement for the entire line.
+; ? = Not sure :-)!
+
+; ***
+; *** Disassembly of the AIM-65 AH5050 disk controller firmware for use with a Commodore C1541 disk drive.
+; ***
+; *** Version : 0.1
+; ***    Date : 3rd April 2021
+; ***
+
+; *******************************************************
+; ***                                                 ***
+; ***  Define the entry points into the MONITOR ROM.  ***
+; ***                                                 ***
+; *******************************************************
+
+COMIN		EQU		$E1A1	; MONITOR Command entry point.
+
+; *****************************************************
+; ***                                               ***
+; ***  Define the entry points into the BASIC ROM.  ***
+; ***                                               ***
+; *****************************************************
+
+; TODO: @@@
+
+; ********************************
+; ***                          ***
+; ***  Define 'bit' basics...  ***
+; ***                          ***
+; ********************************
+
+BIT0		EQU		$01		; LSB.
+BIT1		EQU		$02
+BIT2		EQU 	$04
+BIT3		EQU 	$08
+BIT4		EQU 	$10
+BIT5		EQU 	$20
+BIT6		EQU 	$40
+BIT7		EQU 	$80		; MSB.
+
+TOPBIT		EQU		BIT7	; String terminator. The top bit is set on the last character of the string.
+
+CR			EQU		$0D		; ASCII <CR>
+
+; **********************************************
+; ***                                        ***
+; ***  I/O device configuration (User VIA).  ***
+; ***                                        ***
+; **********************************************
+
+; TODO: @@@
+
+; ****************************************************
+; ***                                              ***
+; ***  Serial IEC definitions (C1541 disk drive).  ***
+; ***                                              ***
+; ****************************************************
+
+; TODO: @@@
+
+; ****************************
+; ***                      ***
+; ***  RAM configuration.  ***
+; ***                      ***
+; ****************************
+
+; TODO: @@@
+
+; **********************************************
+; ***                                        ***
+; ***  This is the start of the AH5050 ROM.  ***
+; ***                                        ***
+; **********************************************
+
+ROMSTART	EQU		$D000
+
+			ORG		ROMSTART
+                   
+XD000   20 6F D5   JSR LD56F		; Initialisation entry point.
+XD003   4C A1 E1   JMP COMIN		; Return back to MONITOR Command Entry Point.
+
+D006   4C EC D7   JMP $D7EC
+D009   4C A2 D2   JMP $D2A2
+D00C   4C 18 D0   JMP $D018
+D00F   4C D5 D3   JMP $D3D5
+D012   4C 0F D4   JMP $D40F
+D015   4C 92 D4   JMP $D492
+D018   90 49      BCC $D063
+D01A   C9 99      CMP #$99
+D01C   D0 03      BNE $D021
+D01E   4C 43 D1   JMP $D143
+D021   C9 94      CMP #$94
+D023   D0 03      BNE $D028
+D025   4C 05 D2   JMP $D205
+D028   C9 93      CMP #$93
+D02A   D0 03      BNE $D02F
+D02C   4C 69 D2   JMP $D269
+D02F   C9 97      CMP #$97
+D031   D0 03      BNE $D036
+D033   4C F7 D2   JMP $D2F7
+D036   C9 84      CMP #$84
+D038   D0 03      BNE $D03D
+D03A   4C 1A D3   JMP $D31A
+D03D   C9 D0      CMP #$D0
+D03F   90 0E      BCC $D04F
+D041   86 D5      STX $D5
+D043   A2 07      LDX #$07
+D045   DD 98 D0   CMP $D098,X
+D048   F0 07      BEQ $D051
+D04A   CA         DEX
+D04B   10 F8      BPL $D045
+D04D   A6 D5      LDX $D5
+D04F   38         SEC
+D050   60         RTS
+D051   20 57 D0   JSR $D057
+D054   4C C8 B5   JMP $B5C8
+D057   8A         TXA
+D058   0A         ASL A
+D059   AA         TAX
+D05A   BD A1 D0   LDA $D0A1,X
+D05D   48         PHA
+D05E   BD A0 D0   LDA $D0A0,X
+D061   48         PHA
+D062   60         RTS
+D063   86 D5      STX $D5
+D065   85 D4      STA $D4
+D067   BA         TSX
+D068   BD 02 01   LDA $0102,X
+D06B   C9 B2      CMP #$B2
+D06D   D0 07      BNE $D076
+D06F   BD 01 01   LDA $0101,X
+D072   C9 8D      CMP #$8D
+D074   F0 0B      BEQ $D081
+D076   A5 D4      LDA $D4
+D078   A6 D5      LDX $D5
+D07A   38         SEC
+D07B   E9 30      SBC #$30
+D07D   38         SEC
+D07E   E9 D0      SBC #$D0
+D080   60         RTS
+D081   A5 D4      LDA $D4
+D083   F0 FB      BEQ $D080
+D085   A2 FF      LDX #$FF
+D087   86 82      STX $82
+D089   18         CLC
+D08A   20 DA B7   JSR $B7DA
+D08D   20 D2 D0   JSR $D0D2
+D090   B0 03      BCS $D095
+D092   20 B2 B3   JSR $B3B2
+D095   4C A3 B2   JMP $B2A3
+D098   D0 D1      BNE $D06B
+D09A   D2         ???
+D09B   D3         ???
+D09C   D4         ???
+D09D   D5 D6      CMP $D6,X
+D09F   D7         ???
+D0A0   AA         TAX
+D0A1   D2         ???
+D0A2   E4 D2      CPX $D2
+D0A4   EA         NOP
+D0A5   D2         ???
+D0A6   F0 D2      BEQ $D07A
+D0A8   3D D3 4C   AND $4CD3,X
+D0AB   D3         ???
+D0AC   5E D3 64   LSR $64D3,X
+D0AF   D3         ???
+D0B0   4F         ???
+D0B1   50 45      BVC $D0F8
+D0B3   CE 43 4C   DEC $4C43
+D0B6   4F         ???
+D0B7   53         ???
+D0B8   C5 43      CMP $43
+D0BA   48         PHA
+D0BB   49 CE      EOR #$CE
+D0BD   43         ???
+D0BE   48         PHA
+D0BF   4F         ???
+D0C0   55 D4      EOR $D4,X
+D0C2   43         ???
+D0C3   4D C4 53   EOR $53C4
+D0C6   54         ???
+D0C7   41 54      EOR ($54,X)
+D0C9   55 D3      EOR $D3,X
+D0CB   45 58      EOR $58
+D0CD   C5 53      CMP $53
+D0CF   59 D3 00   EOR $00D3,Y
+D0D2   A6 C6      LDX $C6
+D0D4   A0 04      LDY #$04
+D0D6   B5 00      LDA $00,X
+D0D8   C9 20      CMP #$20
+D0DA   F0 2A      BEQ $D106
+D0DC   85 07      STA $07
+D0DE   C9 22      CMP #$22
+D0E0   F0 38      BEQ $D11A
+D0E2   84 B9      STY $B9
+D0E4   86 C6      STX $C6
+D0E6   A0 D0      LDY #$D0
+D0E8   84 08      STY $08
+D0EA   A0 00      LDY #$00
+D0EC   88         DEY
+D0ED   CA         DEX
+D0EE   C8         INY
+D0EF   E8         INX
+D0F0   B5 00      LDA $00,X
+D0F2   38         SEC
+D0F3   F9 B0 D0   SBC $D0B0,Y
+D0F6   F0 F6      BEQ $D0EE
+D0F8   C9 80      CMP #$80
+D0FA   D0 29      BNE $D125
+D0FC   05 08      ORA $08
+D0FE   A0 00      LDY #$00
+D100   84 07      STY $07
+D102   A4 B9      LDY $B9
+D104   D0 14      BNE $D11A
+D106   E8         INX
+D107   C8         INY
+D108   99 11 00   STA $0011,Y
+D10B   B9 11 00   LDA $0011,Y
+D10E   F0 28      BEQ $D138
+D110   D0 C4      BNE $D0D6
+D112   B5 00      LDA $00,X
+D114   F0 F0      BEQ $D106
+D116   C5 07      CMP $07
+D118   F0 EC      BEQ $D106
+D11A   C8         INY
+D11B   99 11 00   STA $0011,Y
+D11E   E8         INX
+D11F   C9 3A      CMP #$3A
+D121   F0 B3      BEQ $D0D6
+D123   D0 ED      BNE $D112
+D125   A6 C6      LDX $C6
+D127   E6 08      INC $08
+D129   C8         INY
+D12A   B9 AF D0   LDA $D0AF,Y
+D12D   10 FA      BPL $D129
+D12F   B9 B0 D0   LDA $D0B0,Y
+D132   D0 BC      BNE $D0F0
+D134   A4 B9      LDY $B9
+D136   18         CLC
+D137   60         RTS
+D138   99 13 00   STA $0013,Y
+D13B   A9 15      LDA #$15
+D13D   85 C6      STA $C6
+D13F   85 C6      STA $C6
+D141   38         SEC
+D142   60         RTS
+D143   20 BF 00   JSR $00BF
+D146   48         PHA
+D147   A9 00      LDA #$00
+D149   85 0E      STA $0E
+D14B   68         PLA
+D14C   08         PHP
+D14D   20 DA B7   JSR $B7DA
+D150   20 36 B4   JSR $B436
+D153   28         PLP
+D154   F0 14      BEQ $D16A
+D156   20 C5 00   JSR $00C5
+D159   F0 15      BEQ $D170
+D15B   C9 A5      CMP #$A5
+D15D   D0 0A      BNE $D169
+D15F   20 BF 00   JSR $00BF
+D162   F0 06      BEQ $D16A
+D164   20 DA B7   JSR $B7DA
+D167   F0 07      BEQ $D170
+D169   60         RTS
+D16A   A9 FF      LDA #$FF
+D16C   85 14      STA $14
+D16E   85 15      STA $15
+D170   68         PLA
+D171   68         PLA
+D172   A0 01      LDY #$01
+D174   B1 A7      LDA ($A7),Y
+D176   F0 39      BEQ $D1B1
+D178   20 40 B6   JSR $B640
+D17B   20 00 B9   JSR $B900
+D17E   C8         INY
+D17F   B1 A7      LDA ($A7),Y
+D181   AA         TAX
+D182   C8         INY
+D183   B1 A7      LDA ($A7),Y
+D185   C5 15      CMP $15
+D187   D0 04      BNE $D18D
+D189   E4 14      CPX $14
+D18B   F0 02      BEQ $D18F
+D18D   B0 22      BCS $D1B1
+D18F   84 91      STY $91
+D191   20 0C CB   JSR $CB0C
+D194   A9 20      LDA #$20
+D196   A4 91      LDY $91
+D198   29 7F      AND #$7F
+D19A   20 6C B9   JSR $B96C
+D19D   C8         INY
+D19E   F0 11      BEQ $D1B1
+D1A0   B1 A7      LDA ($A7),Y
+D1A2   D0 22      BNE $D1C6
+D1A4   A8         TAY
+D1A5   B1 A7      LDA ($A7),Y
+D1A7   AA         TAX
+D1A8   C8         INY
+D1A9   B1 A7      LDA ($A7),Y
+D1AB   86 A7      STX $A7
+D1AD   85 A8      STA $A8
+D1AF   D0 C1      BNE $D172
+D1B1   A5 0E      LDA $0E
+D1B3   F0 0E      BEQ $D1C3
+D1B5   20 00 B9   JSR $B900
+D1B8   20 00 B9   JSR $B900
+D1BB   A9 1A      LDA #$1A
+D1BD   20 6C B9   JSR $B96C
+D1C0   20 0A E5   JSR $E50A
+D1C3   4C 7F B2   JMP $B27F
+D1C6   10 D2      BPL $D19A
+D1C8   38         SEC
+D1C9   E9 7F      SBC #$7F
+D1CB   AA         TAX
+D1CC   84 91      STY $91
+D1CE   A0 FF      LDY #$FF
+D1D0   CA         DEX
+D1D1   F0 0A      BEQ $D1DD
+D1D3   C8         INY
+D1D4   B9 90 B0   LDA $B090,Y
+D1D7   F0 0F      BEQ $D1E8
+D1D9   10 F8      BPL $D1D3
+D1DB   30 F3      BMI $D1D0
+D1DD   C8         INY
+D1DE   B9 90 B0   LDA $B090,Y
+D1E1   30 B3      BMI $D196
+D1E3   20 6C B9   JSR $B96C
+D1E6   D0 F5      BNE $D1DD
+D1E8   A0 FF      LDY #$FF
+D1EA   8A         TXA
+D1EB   38         SEC
+D1EC   E9 09      SBC #$09
+D1EE   AA         TAX
+D1EF   CA         DEX
+D1F0   F0 08      BEQ $D1FA
+D1F2   C8         INY
+D1F3   B9 B0 D0   LDA $D0B0,Y
+D1F6   10 FA      BPL $D1F2
+D1F8   30 F5      BMI $D1EF
+D1FA   C8         INY
+D1FB   B9 B0 D0   LDA $D0B0,Y
+D1FE   30 96      BMI $D196
+D200   20 6C B9   JSR $B96C
+D203   D0 F5      BNE $D1FA
+D205   20 BF 00   JSR $00BF
+D208   C9 42      CMP #$42
+D20A   F0 0D      BEQ $D219
+D20C   48         PHA
+D20D   20 71 E8   JSR $E871
+D210   20 67 B9   JSR $B967
+D213   A9 FF      LDA #$FF
+D215   38         SEC
+D216   4C 49 D1   JMP $D149
+D219   20 1F D2   JSR $D21F
+D21C   4C 7F B2   JMP $B27F
+D21F   A4 73      LDY $73
+D221   84 DD      STY $DD
+D223   A4 74      LDY $74
+D225   88         DEY
+D226   84 DE      STY $DE
+D228   A0 FE      LDY #$FE
+D22A   A2 01      LDX #$01
+D22C   B5 75      LDA $75,X
+D22E   91 DD      STA ($DD),Y
+D230   88         DEY
+D231   CA         DEX
+D232   10 F8      BPL $D22C
+D234   88         DEY
+D235   88         DEY
+D236   98         TYA
+D237   18         CLC
+D238   65 DD      ADC $DD
+D23A   8D 27 02   STA $0227
+D23D   A5 DE      LDA $DE
+D23F   69 00      ADC #$00
+D241   8D 28 02   STA $0228
+D244   A5 75      LDA $75
+D246   85 DD      STA $DD
+D248   18         CLC
+D249   69 DB      ADC #$DB
+D24B   8D 29 02   STA $0229
+D24E   A5 76      LDA $76
+D250   85 DE      STA $DE
+D252   69 00      ADC #$00
+D254   8D 2A 02   STA $022A
+D257   A0 00      LDY #$00
+D259   B9 00 00   LDA $0000,Y
+D25C   91 DD      STA ($DD),Y
+D25E   C8         INY
+D25F   C0 DC      CPY #$DC
+D261   D0 F6      BNE $D259
+D263   20 F8 DD   JSR $DDF8
+D266   4C 13 DA   JMP $DA13
+D269   20 BF 00   JSR $00BF
+D26C   C9 42      CMP #$42
+D26E   F0 0B      BEQ $D27B
+D270   20 48 E8   JSR $E848
+D273   A0 8E      LDY #$8E
+D275   20 5F D7   JSR $D75F				; Output message indexed by Y.
+D278   4C 81 D2   JMP $D281
+D27B   20 78 DE   JSR $DE78
+D27E   20 86 D2   JSR $D286
+D281   68         PLA
+D282   68         PLA
+D283   4C 7F B2   JMP $B27F
+D286   20 2C DE   JSR $DE2C
+D289   A0 03      LDY #$03
+D28B   B1 DD      LDA ($DD),Y
+D28D   AA         TAX
+D28E   C8         INY
+D28F   B1 DD      LDA ($DD),Y
+D291   85 DE      STA $DE
+D293   86 DD      STX $DD
+D295   A0 00      LDY #$00
+D297   B1 DD      LDA ($DD),Y
+D299   99 00 00   STA $0000,Y
+D29C   C8         INY
+D29D   C0 DC      CPY #$DC
+D29F   D0 F6      BNE $D297
+D2A1   60         RTS
+D2A2   20 86 D2   JSR $D286
+D2A5   20 7C B4   JSR $B47C
+D2A8   4C C8 B5   JMP $B5C8
+D2AB   38         SEC
+D2AC   66 DC      ROR $DC
+D2AE   A9 00      LDA #$00
+D2B0   20 9E D8   JSR LD89E				; Call SETNAM? Zero length filename! Nah...
+D2B3   20 6E D3   JSR $D36E
+D2B6   48         PHA
+D2B7   20 74 D3   JSR $D374
+D2BA   AA         TAX
+D2BB   68         PLA
+D2BC   20 B0 D8   JSR $D8B0
+D2BF   AD 19 02   LDA $0219
+D2C2   8D 1D 02   STA $021D
+D2C5   8D 34 02   STA $0234
+D2C8   C9 04      CMP #$04
+D2CA   90 11      BCC $D2DD
+D2CC   20 B1 DA   JSR $DAB1
+D2CF   AD 18 02   LDA $0218
+D2D2   8D 1C 02   STA $021C
+D2D5   09 F0      ORA #$F0
+D2D7   20 60 DB   JSR $DB60
+D2DA   20 89 D9   JSR $D989
+D2DD   20 A9 B8   JSR $B8A9
+D2E0   A9 FF      LDA #$FF
+D2E2   4C 6F DA   JMP $DA6F
+D2E5   20 6E D3   JSR $D36E
+D2E8   4C 93 D9   JMP $D993
+D2EB   20 6E D3   JSR $D36E
+D2EE   4C 2F DA   JMP $DA2F
+D2F1   20 6E D3   JSR $D36E
+D2F4   4C 6F DA   JMP $DA6F
+D2F7   20 BF 00   JSR $00BF
+D2FA   C9 23      CMP #$23
+D2FC   F0 06      BEQ $D304
+D2FE   20 A9 B8   JSR $B8A9
+D301   4C 15 D3   JMP $D315
+D304   20 6E D3   JSR $D36E
+D307   20 6F DA   JSR $DA6F
+D30A   20 BF 00   JSR $00BF
+D30D   20 A9 B8   JSR $B8A9
+D310   A9 FF      LDA #$FF
+D312   20 6F DA   JSR $DA6F
+D315   68         PLA
+D316   68         PLA
+D317   4C C8 B5   JMP $B5C8
+D31A   20 BF 00   JSR $00BF
+D31D   C9 23      CMP #$23
+D31F   F0 06      BEQ $D327
+D321   20 BE B9   JSR $B9BE
+D324   4C 15 D3   JMP $D315
+D327   20 6E D3   JSR $D36E
+D32A   20 2F DA   JSR $DA2F
+D32D   38         SEC
+D32E   66 10      ROR $10
+D330   20 BF 00   JSR $00BF
+D333   20 BE B9   JSR $B9BE
+D336   A9 FF      LDA #$FF
+D338   20 2F DA   JSR $DA2F
+D33B   4C 15 D3   JMP $D315
+D33E   20 AB D5   JSR $D5AB
+D341   8D 13 A4   STA $A413
+D344   20 74 D3   JSR $D374
+D347   20 53 DF   JSR $DF53
+D34A   4C 0A D3   JMP $D30A
+D34D   20 AB D5   JSR $D5AB
+D350   8D 12 A4   STA $A412
+D353   20 74 D3   JSR $D374
+D356   20 67 DF   JSR $DF67
+D359   38         SEC
+D35A   66 10      ROR $10
+D35C   4C 33 D3   JMP $D333
+D35F   20 AB D2   JSR $D2AB
+D362   4C 68 DE   JMP $DE68
+D365   20 B9 BC   JSR $BCB9
+D368   20 36 C5   JSR $C536
+D36B   6C 14 00   JMP ($0014)
+D36E   20 F1 BE   JSR $BEF1
+D371   A5 AD      LDA $AD
+D373   60         RTS
+D374   A2 FF      LDX #$FF
+D376   A0 00      LDY #$00
+D378   84 08      STY $08
+D37A   E8         INX
+D37B   C8         INY
+D37C   B1 C6      LDA ($C6),Y
+D37E   C9 20      CMP #$20
+D380   F0 F9      BEQ $D37B
+D382   38         SEC
+D383   FD AE D3   SBC $D3AE,X
+D386   F0 F2      BEQ $D37A
+D388   C9 80      CMP #$80
+D38A   D0 11      BNE $D39D
+D38C   C8         INY
+D38D   98         TYA
+D38E   38         SEC
+D38F   65 C6      ADC $C6
+D391   85 C6      STA $C6
+D393   A9 00      LDA #$00
+D395   65 C7      ADC $C7
+D397   85 C7      STA $C7
+D399   A5 08      LDA $08
+D39B   38         SEC
+D39C   60         RTS
+D39D   E8         INX
+D39E   BD AD D3   LDA $D3AD,X
+D3A1   10 FA      BPL $D39D
+D3A3   E6 08      INC $08
+D3A5   A0 00      LDY #$00
+D3A7   BD AE D3   LDA $D3AE,X
+D3AA   D0 CF      BNE $D37B
+D3AC   18         CLC
+D3AD   60         RTS
+D3AE   4B         ???
+D3AF   C2         ???
+D3B0   50 52      BVC $D404
+D3B2   C9 53      CMP #$53
+D3B4   45 D2      EOR $D2
+D3B6   55 53      EOR $53,X
+D3B8   D2         ???
+D3B9   53         ???
+D3BA   50 52      BVC $D40E
+D3BC   C9 B5      CMP #$B5
+D3BE   B6 B7      LDX $B7,Y
+D3C0   44         ???
+D3C1   B1 44      LDA ($44),Y
+D3C3   B2         ???
+D3C4   44         ???
+D3C5   B3         ???
+D3C6   44         ???
+D3C7   B4 00      LDY $00,X
+D3C9   4C A8 D4   JMP $D4A8
+
+					; This appears to be a 9-character filename...
+					
+LD3CC				DB	"FORTH,L,?"		; Not sure why the last character is $80 though?
+;
+;D3CC   46 4F      LSR $4F
+;D3CE   52         ???
+;D3CF   54         ???
+;D3D0   48         PHA
+;D3D1   2C 4C 2C   BIT $2C4C
+;D3D4   80         ???
+
+LD3D5   A9 09      LDA #$09				; 9 Character filename...
+D3D7   A2 49      LDX #$49				; ...stored at address $0249 in RAM.
+D3D9   A0 02      LDY #$02				; "   "   "   "   "   "   "
+D3DB   20 9E D8   JSR LD89E				; Call SETNAM. Hopefully (...) accumulator A retains its value for the next instruction!
+D3DE   AA         TAX					; Index register X is set to 9.
+D3DF   BD CC D3   LDA LD3CC,X			; \ Transfer 1 byte from the ROM filename to RAM.
+D3E2   9D 49 02   STA $0249,X			; /
+D3E5   CA         DEX					; Decrement index register X (next character backwards).
+D3E6   10 F7      BPL $D3DF				; Keep looping... Does this copy 0..9 - which is 10 characters in total?
+D3E8   A9 00      LDA #$00
+D3EA   8D 32 02   STA $0232
+D3ED   A9 02      LDA #$02
+D3EF   A2 08      LDX #$08
+D3F1   20 B0 D8   JSR $D8B0
+D3F4   AC 10 B0   LDY $B010
+D3F7   84 A4      STY $A4
+D3F9   AC 11 B0   LDY $B011
+D3FC   88         DEY
+D3FD   84 A5      STY $A5
+D3FF   A0 FC      LDY #$FC
+D401   A2 02      LDX #$02
+D403   BD C9 D3   LDA $D3C9,X
+D406   91 A4      STA ($A4),Y
+D408   88         DEY
+D409   CA         DEX
+D40A   10 F7      BPL $D403
+D40C   E6 A5      INC $A5
+D40E   60         RTS
+D40F   A5 DC      LDA $DC
+D411   49 01      EOR #$01
+D413   4A         LSR A
+D414   66 DC      ROR $DC
+D416   A2 08      LDX #$08
+D418   86 F8      STX $F8
+D41A   A9 80      LDA #$80
+D41C   85 F9      STA $F9
+D41E   A9 50      LDA #$50
+D420   8D 24 02   STA $0224
+D423   A4 DC      LDY $DC
+D425   20 DC DC   JSR $DCDC
+D428   AD 18 02   LDA $0218
+D42B   20 AE DB   JSR $DBAE
+D42E   AD 16 02   LDA $0216
+D431   20 AE DB   JSR $DBAE
+D434   AD 17 02   LDA $0217
+D437   20 AE DB   JSR $DBAE
+D43A   A9 01      LDA #$01
+D43C   20 AE DB   JSR $DBAE
+D43F   20 99 DB   JSR $DB99
+D442   84 DC      STY $DC
+D444   A5 F9      LDA $F9
+D446   49 80      EOR #$80
+D448   A8         TAY
+D449   AD 18 02   LDA $0218
+D44C   24 DC      BIT $DC
+D44E   30 0F      BMI $D45F
+D450   20 2F DA   JSR $DA2F
+D453   20 C3 DB   JSR $DBC3
+D456   91 DD      STA ($DD),Y
+D458   C8         INY
+D459   C4 F9      CPY $F9
+D45B   D0 F6      BNE $D453
+D45D   F0 0D      BEQ $D46C
+D45F   20 6F DA   JSR $DA6F
+D462   B1 DD      LDA ($DD),Y
+D464   20 AE DB   JSR $DBAE
+D467   C8         INY
+D468   C4 F9      CPY $F9
+D46A   D0 F6      BNE $D462
+D46C   A5 F9      LDA $F9
+D46E   49 80      EOR #$80
+D470   85 F9      STA $F9
+D472   F0 02      BEQ $D476
+D474   E6 DE      INC $DE
+D476   EE 16 02   INC $0216
+D479   D0 03      BNE $D47E
+D47B   EE 17 02   INC $0217
+D47E   C6 F8      DEC $F8
+D480   D0 9C      BNE $D41E
+D482   24 DC      BIT $DC
+D484   30 06      BMI $D48C
+D486   20 8A DB   JSR $DB8A
+D489   A9 00      LDA #$00
+D48B   60         RTS
+D48C   20 99 DB   JSR $DB99
+D48F   A9 00      LDA #$00
+D491   60         RTS
+D492   A5 A4      LDA $A4
+D494   85 73      STA $73
+D496   A5 A5      LDA $A5
+D498   85 74      STA $74
+D49A   A0 12      LDY #$12
+D49C   B1 73      LDA ($73),Y
+D49E   85 75      STA $75
+D4A0   C8         INY
+D4A1   B1 73      LDA ($73),Y
+D4A3   85 76      STA $76
+D4A5   4C 1F D2   JMP $D21F
+D4A8   20 86 D2   JSR $D286
+D4AB   20 D5 D3   JSR $D3D5
+D4AE   A0 46      LDY #$46
+D4B0   B1 A4      LDA ($A4),Y
+D4B2   85 9F      STA $9F
+D4B4   C8         INY
+D4B5   B1 A4      LDA ($A4),Y
+D4B7   85 A0      STA $A0
+D4B9   A0 00      LDY #$00
+D4BB   C8         INY
+D4BC   B1 9F      LDA ($9F),Y
+D4BE   10 FB      BPL $D4BB
+D4C0   98         TYA
+D4C1   18         CLC
+D4C2   69 05      ADC #$05
+D4C4   65 9F      ADC $9F
+D4C6   85 9F      STA $9F
+D4C8   A9 00      LDA #$00
+D4CA   65 A0      ADC $A0
+D4CC   85 A0      STA $A0
+D4CE   A0 06      LDY #$06
+D4D0   B1 A4      LDA ($A4),Y
+D4D2   AA         TAX
+D4D3   4C 0C B4   JMP $B40C
+
+                   ; Start of text message area. Indexed by 'Y'.
+                   ; Y = $00 = "  FILE="
+                   ; Y = $07 = "DEV="
+                   ; Y = $0B = ""
+                   
+LD4D6   			DB "  FILE", '=' + TOPBIT
+
+;D4D6   20 20 46   JSR $4620
+;D4D9   49 4C      EOR #$4C
+;D4DB   45 BD      EOR $BD
+
+LD4DD				DB "DEV", '=' + TOPBIT
+					
+;D4DD   44         ???
+;D4DE   45 56      EOR $56
+;D4E0   BD 
+
+LD4E1				DB "D(IR,T(YP,N(AM,S(CR,F(RMT,C(LR,M(G,I(NI,V(AL,P(UT,G(ET,R(UN", '?' + TOPBIT
+
+					DB "GO Y/N", CR + TOPBIT
+					
+					DB "06 OVER 10 FL", CR + TOPBIT
+					
+					DB "07 FILE OPENED", CR + TOPBIT
+					
+					DB "08 NO FILE OPENED", CR + TOPBIT
+					
+					DB "09 EOF", CR + TOPBIT
+					
+					DB "10 NO DEV", CR + TOPBIT
+					
+					DB "WAI", 'T' + TOPBIT
+
+
+D4E1   44 28   LDA $2844,X
+D4E3   49 52      EOR #$52
+D4E5   2C 54 28   BIT $2854
+D4E8   59 50 2C   EOR $2C50,Y
+D4EB   4E 28 41   LSR $4128
+D4EE   4D 2C 53   EOR $532C
+D4F1   28         PLP
+D4F2   43         ???
+D4F3   52         ???
+D4F4   2C 46 28   BIT $2846
+D4F7   52         ???
+D4F8   4D 54 2C   EOR $2C54
+D4FB   43         ???
+D4FC   28         PLP
+D4FD   4C 52 2C   JMP $2C52
+D500   4D 28 47   EOR $4728
+D503   2C 49 28   BIT $2849
+D506   4E 49 2C   LSR $2C49
+D509   56 28      LSR $28,X
+D50B   41 4C      EOR ($4C,X)
+D50D   2C 50 28   BIT $2850
+D510   55 54      EOR $54,X
+D512   2C 47 28   BIT $2847
+D515   45 54      EOR $54
+D517   2C 52 28   BIT $2852
+D51A   55 4E      EOR $4E,X
+D51C   BF         ???
+
+D51D   47         ???
+D51E   4F         ???
+D51F   20 59 2F   JSR $2F59
+D522   4E BF 30   LSR $30BF
+D525   36 20      ROL $20,X
+D527   4F         ???
+D528   56 45      LSR $45,X
+D52A   52         ???
+D52B   20 31 30   JSR $3031
+D52E   20 46 4C   JSR $4C46
+D531   8D 30 37   STA $3730
+D534   20 46 49   JSR $4946
+D537   4C 45 20   JMP $2045
+D53A   4F         ???
+D53B   50 45      BVC $D582
+D53D   4E 45 44   LSR $4445
+D540   8D 30 38   STA $3830
+D543   20 4E 4F   JSR $4F4E
+D546   20 46 49   JSR $4946
+D549   4C 45 20   JMP $2045
+D54C   4F         ???
+D54D   50 45      BVC $D594
+D54F   4E 45 44   LSR $4445
+D552   8D 30 39   STA $3930
+D555   20 45 4F   JSR $4F45
+D558   46 8D      LSR $8D
+D55A   31 30      AND ($30),Y
+D55C   20 4E 4F   JSR $4F4E
+D55F   20 44 45   JSR $4544
+D562   56 8D      LSR $8D,X
+D564   57         ???
+D565   41 49      EOR ($49,X)
+D567   D4         ???
+
+                   ; ***  Data table of vectors. 6 bytes.
+
+                   ; $0108/$0109       = UIN vector.
+                   ; $010A/$010B       = UOUT vector.
+                   ; $010C/$010D/$010E = JMP ($4C) KEYF1 handler.
+
+LD568              DB $B7		; UIN vector = LD5B7.                 
+                   DB $D5		; 
+                   DB $54		; UOUT vector = LD654.
+                   DB $D6		; 
+                   DB $4C		; KEYF1 = JMP ($4C) LDCA1.
+                   DB $A1		; 
+LD56E              DB $DC		; 
+
+
+LD56F   A2 06      LDX #$06			; 7 bytes to transfer (0 to 6). X is used as a memory index starting high and working backwards.
+LD571   BD 68 D5   LDA LD568,X		; Data stored in EPROM starting at LD568 + 6 = LD56E.
+XD574   9D 08 01   STA $0108,X		; Data stored to RAM at $010E down to $0108. 
+XD577   CA         DEX				; Decrement index register X.
+XD578   10 F7      BPL LD571		; Keep looping if more to do...
+
+XD57A   A9 00      LDA #$00			; Accumulator = $00 = 0000_0000.
+XD57C   8D 00 A0   STA $A000		; User VIA - ORB = $00. Initial value of any VIA Port 'B' outputs.
+XD57F   8D 11 02   STA $0211		; ? RAM.
+XD582   8D 08 A0   STA $A008		; User VIA - Write T2L-L.
+XD585   8D 2F 02   STA $022F		; ? RAM.
+XD588   8D 32 02   STA $0232		; ? RAM.
+XD58B   A9 C7      LDA #$C7			; Accumulator = $C7 = 1100_0111.
+XD58D   8D 23 02   STA $0223		; ? RAM.
+XD590   8D 01 A0   STA $A001		; User VIA - ORA = $C7 = 1100_0111. = Initial values. ATN, CLK and DATA become logic '0' which are then inverted to become logic '1' which is INACTIVE.
+XD593   AD 03 A0   LDA $A003		; User VIA - DDRA.
+XD596   09 38      ORA #$38			; Merge in $38 = 0011_1000. Bits 3, 4 and 5, are output bits. 3=Drive ATN. 4=Drive CLK. 5=Drive DATA.
+XD598   8D 03 A0   STA $A003		; User VIA - DDRA.
+XD59B   A9 FF      LDA #$FF			; Accumulator = $FF.
+XD59D   8D 02 A0   STA $A002		; User VIA - DDRB. All output bits.
+XD5A0   A9 CE      LDA #$CE			; Accumulator = $CE = 1100_1110. !!! NOTE !!! User VIA Port B and CB1/CB2 are for the Centronics printer port and NOT the IEC disk drive interface...
+XD5A2   8D 0C A0   STA $A00C		; User VIA - PCR. CB2 = 110 = 6 = Manual Output Mode '0'. CB1 = 0 = Negative input transition interrupt. CA2 = 111 = 7 = Manual Output Mode '1' (/RESET). CA1 = 0 = Negative input transition interrupt (/SRQIN).
+XD5A5   20 44 DC   JSR LDC44		; Call LDC44. Set IEC clock Active.
+XD5A8   4C 42 DE   JMP LDE42		; Continue to LDE42.
+
+D5AB   AD 11 02   LDA $0211
+D5AE   8D 33 02   STA $0233
+D5B1   8D 34 02   STA $0234
+D5B4   A9 55      LDA #$55
+D5B6   60         RTS
+
+                   ; UIN handler.
+LD5B7   B0 07      BCS LD5C0
+XD5B9   A2 00      LDX #$00
+XD5BB   18         CLC
+XD5BC   20 B7 D7   JSR LD7B7
+XD5BF   60         RTS
+
+LD5C0   AD 33 02   LDA $0233
+D5C3   D0 03      BNE $D5C8
+D5C5   4C 83 FE   JMP $FE83
+D5C8   C9 02      CMP #$02
+D5CA   D0 03      BNE $D5CF
+D5CC   4C DB EB   JMP $EBDB
+D5CF   C9 04      CMP #$04
+D5D1   B0 04      BCS $D5D7
+D5D3   38         SEC
+D5D4   6C 12 02   JMP ($0212)
+D5D7   24 DC      BIT $DC
+D5D9   10 03      BPL $D5DE
+D5DB   20 51 DA   JSR $DA51
+D5DE   AD 32 02   LDA $0232
+D5E1   F0 6F      BEQ $D652
+D5E3   20 C3 DB   JSR $DBC3
+D5E6   B0 01      BCS $D5E9
+D5E8   60         RTS
+D5E9   48         PHA
+D5EA   98         TYA
+D5EB   48         PHA
+D5EC   8A         TXA
+D5ED   48         PHA
+D5EE   AD 33 02   LDA $0233
+D5F1   48         PHA
+D5F2   AD 34 02   LDA $0234
+D5F5   48         PHA
+D5F6   AD 1A 02   LDA $021A
+D5F9   20 93 D9   JSR $D993
+D5FC   68         PLA
+D5FD   8D 34 02   STA $0234
+D600   68         PLA
+D601   8D 33 02   STA $0233
+D604   2C 1E 02   BIT $021E
+D607   10 42      BPL $D64B
+D609   A5 2A      LDA $2A
+D60B   F0 3E      BEQ $D64B
+D60D   C9 46      CMP #$46
+D60F   F0 07      BEQ $D618
+D611   A5 A7      LDA $A7
+D613   CD 2E A4   CMP $A42E
+D616   F0 15      BEQ $D62D
+D618   A6 29      LDX $29
+D61A   A0 00      LDY #$00
+D61C   B5 46      LDA $46,X
+D61E   99 58 02   STA $0258,Y
+D621   C8         INY
+D622   E8         INX
+D623   E4 35      CPX $35
+D625   90 F5      BCC $D61C
+D627   8C 1F 02   STY $021F
+D62A   20 13 EA   JSR $EA13
+D62D   AE 1F 02   LDX $021F
+D630   8E 20 02   STX $0220
+D633   BD 58 02   LDA $0258,X
+D636   9D 49 02   STA $0249,X
+D639   CA         DEX
+D63A   10 F7      BPL $D633
+D63C   AD 1A 02   LDA $021A
+D63F   AE 1B 02   LDX $021B
+D642   8D 18 02   STA $0218
+D645   8E 19 02   STX $0219
+D648   20 54 D8   JSR $D854
+D64B   68         PLA
+D64C   AA         TAX
+D64D   68         PLA
+D64E   A8         TAY
+D64F   E6 F7      INC $F7
+D651   68         PLA
+D652   38         SEC
+D653   60         RTS
+
+                   ; ***********************
+                   ; ***                 ***
+                   ; ***  UOUT handler.  ***
+                   ; ***                 ***
+                   ; ***********************
+                   
+LD654   B0 0E      BCS LD664			; 'Normal' processing if carry flag is set. 'Initialise' processing if carry flag is clear.
+D656   A9 0D      LDA #$0D
+D658   8D 13 A4   STA $A413
+D65B   A2 00      LDX #$00
+D65D   8E 25 02   STX $0225
+D660   38         SEC
+D661   4C B7 D7   JMP LD7B7
+
+LD664   AD 34 02   LDA $0234			; Normal UOUT processing to handle an output character.
+D667   D0 03      BNE $D66C
+D669   4C 0B D7   JMP $D70B
+D66C   C9 01      CMP #$01
+D66E   D0 0D      BNE $D67D
+D670   68         PLA
+D671   C9 0D      CMP #$0D
+D673   D0 05      BNE $D67A
+D675   20 1A D7   JSR $D71A
+D678   A9 0A      LDA #$0A
+D67A   4C 1A D7   JMP $D71A
+D67D   C9 02      CMP #$02
+D67F   D0 0D      BNE $D68E
+D681   68         PLA
+D682   C9 0D      CMP #$0D
+D684   D0 05      BNE $D68B
+D686   20 A8 EE   JSR $EEA8
+D689   A9 0A      LDA #$0A
+D68B   4C A8 EE   JMP $EEA8
+D68E   C9 04      CMP #$04
+D690   B0 05      BCS $D697
+D692   68         PLA
+D693   38         SEC
+D694   6C 14 02   JMP ($0214)
+D697   24 DC      BIT $DC
+D699   30 03      BMI $D69E
+D69B   20 8F DA   JSR $DA8F
+D69E   AD 26 02   LDA $0226
+D6A1   C9 0A      CMP #$0A
+D6A3   90 07      BCC $D6AC
+D6A5   68         PLA
+D6A6   8D 25 02   STA $0225
+D6A9   4C AE DB   JMP $DBAE
+D6AC   C9 00      CMP #$00
+D6AE   D0 15      BNE $D6C5
+D6B0   68         PLA
+D6B1   C9 0D      CMP #$0D
+D6B3   F0 09      BEQ $D6BE
+D6B5   C9 0A      CMP #$0A
+D6B7   F0 04      BEQ $D6BD
+D6B9   C9 FF      CMP #$FF
+D6BB   D0 E9      BNE $D6A6
+D6BD   60         RTS
+D6BE   CD 25 02   CMP $0225
+D6C1   D0 E3      BNE $D6A6
+D6C3   F0 1C      BEQ $D6E1
+D6C5   C9 03      CMP #$03
+D6C7   D0 35      BNE $D6FE
+D6C9   8E 2E 02   STX $022E
+D6CC   BA         TSX
+D6CD   BD 04 01   LDA $0104,X
+D6D0   CD FC D6   CMP $D6FC
+D6D3   D0 21      BNE $D6F6
+D6D5   BD 05 01   LDA $0105,X
+D6D8   CD FD D6   CMP $D6FD
+D6DB   D0 19      BNE $D6F6
+D6DD   AE 2E 02   LDX $022E
+D6E0   68         PLA
+D6E1   20 AE DB   JSR $DBAE
+D6E4   20 01 E9   JSR $E901
+D6E7   98         TYA
+D6E8   48         PHA
+D6E9   8A         TXA
+D6EA   48         PHA
+D6EB   AD 1C 02   LDA $021C
+D6EE   20 93 D9   JSR $D993
+D6F1   68         PLA
+D6F2   AA         TAX
+D6F3   68         PLA
+D6F4   A8         TAY
+D6F5   60         RTS
+D6F6   AE 2E 02   LDX $022E
+D6F9   4C A5 D6   JMP $D6A5
+D6FC   09 E5      ORA #$E5
+D6FE   C9 09      CMP #$09
+D700   D0 A4      BNE $D6A6
+D702   68         PLA
+D703   C9 1A      CMP #$1A
+D705   F0 DA      BEQ $D6E1
+D707   20 AE DB   JSR $DBAE
+D70A   60         RTS
+D70B   68         PLA
+D70C   C9 0A      CMP #$0A
+D70E   D0 01      BNE $D711
+D710   60         RTS
+D711   C9 0D      CMP #$0D
+D713   D0 02      BNE $D717
+D715   09 80      ORA #$80
+D717   4C 7A E9   JMP $E97A
+
+LD71A   8E 2E 02   STX $022E			; Store the index register X into temporary storage.
+XD71D   8C 2F 02   STY $022F			; Store the index register Y into temporary storage.
+XD720   48         PHA					; Save the accumulator onto the stack for later.
+LD721   20 6E D7   JSR LD76E			; Call ???
+XD724   AD 0D A0   LDA $A00D			; User VIA - IFR.
+XD727   29 10      AND #$10				; #$10 = 0001_0000 = CB1 input active transition (high to low).
+XD729   F0 F6      BEQ $D721			; If the flag isn't set then branch. Waiting for an input 'event' of some kind on CB1...
+XD72B   68         PLA					; Restore the accumulator from the stack.
+XD72C   8D 00 A0   STA $A000			; Store the accumulator to ORB. This should clear the CB1 interrupt flag.
+XD72F   A9 EE      LDA #$EE				; #$EE = 1110_1110. Not convinced about CB2 being toggled here. According to the schematic, CB2 is not used by the disk interface. CA2 is however (/RESET).
+XD731   8D 0C A0   STA $A00C			; User VIA - PCR. CB2 = 111 = 7 = Manual Output Mode '1'. CB1 = 0 = Negative input transition interrupt. CA2 = 111 = 7 = Manual Output Mode '1' (/RESET). CA1 = 0 = Negative input transition interrupt (/SRQIN).
+XD734   A9 CE      LDA #$CE				; #$CE = 1100_1110.
+XD736   8D 0C A0   STA $A00C			; User VIA - PCR. CB2 = 110 = 6 = Manual Output Mode '0'. CB1 = 0 = Negative input transition interrupt. CA2 = 111 = 7 = Manual Output Mode '1' (/RESET). CA1 = 0 = Negative input transition interrupt (/SRQIN).
+XD739   18         CLC					; Clear the carry flag.
+XD73A   AE 2E 02   LDX $022E			; Recover the index register X value stored previously.
+XD73D   AC 2F 02   LDY $022F			; Recover the index register Y value stored previously.
+XD740   60         RTS					; Return to the caller....
+
+D741   A9 4E      LDA #$4E
+D743   2C A9 5C   BIT $5CA9
+D746   2C A9 6B   BIT $6BA9
+D749   2C A9 7D   BIT $7DA9
+D74C   2C A9 84   BIT $84A9
+D74F   48         PHA
+D750   20 25 DA   JSR $DA25
+D753   68         PLA
+D754   A8         TAY
+D755   2C 23 02   BIT $0223
+D758   50 03      BVC $D75D
+D75A   4C 5F D7   JMP $D75F				; Output message indexed by Y.
+D75D   38         SEC					; At a guess, signify that an error has occurred.
+D75E   60         RTS					; Return to caller...
+
+                   ; Output the text in the ROM starting at LD4D6 + Y.
+LD75F   B9 D6 D4   LDA LD4D6,Y			; Pickup the character to be displayed/output.
+XD762   08         PHP					; Save the processor status flags to the stack (related to the last LDA).
+XD763   29 7F      AND #$7F				; Only interested in the lest 7 bits of the character (turn into ASCII).
+XD765   20 BC E9   JSR $E9BC			; $E9BC = OUTALL (Write a character to the output device).
+XD768   C8         INY					; Move on to the next character (if any).
+XD769   28         PLP					; Recover the processor status flags from the stack.
+XD76A   10 F3      BPL LD75F			; Continue to output text until the top bit of a byte is set... 
+XD76C   18         CLC					; Clear the processors cary flag (why not).
+XD76D   60         RTS					; Return to caller.
+
+D76E   20 42 E8   JSR $E842
+D771   F0 24      BEQ $D797
+D773   A9 00      LDA #$00
+D775   8D 80 A4   STA $A480
+D778   AD 82 A4   LDA $A482
+D77B   C9 FF      CMP #$FF
+D77D   F0 16      BEQ $D795
+D77F   20 EF EC   JSR $ECEF
+D782   88         DEY
+D783   30 10      BMI $D795
+D785   A2 00      LDX #$00
+D787   20 82 EC   JSR $EC82
+D78A   C9 1B      CMP #$1B
+D78C   F0 20      BEQ $D7AE
+D78E   C9 20      CMP #$20
+D790   D0 03      BNE $D795
+D792   20 40 EC   JSR $EC40
+D795   18         CLC
+D796   60         RTS
+D797   70 13      BVS $D7AC
+D799   2C 00 A8   BIT $A800
+D79C   50 FB      BVC $D799
+D79E   20 0F EC   JSR $EC0F
+D7A1   20 DB EB   JSR $EBDB
+D7A4   C9 1B      CMP #$1B
+D7A6   F0 06      BEQ $D7AE
+D7A8   C9 20      CMP #$20
+D7AA   D0 ED      BNE $D799
+D7AC   18         CLC
+D7AD   60         RTS
+D7AE   20 25 DA   JSR $DA25
+D7B1   38         SEC
+D7B2   60         RTS
+D7B3   A9 50      LDA #$50
+D7B5   D0 02      BNE $D7B9
+D7B7   A9 53      LDA #$53
+D7B9   85 DD      STA $DD
+D7BB   66 DC      ROR $DC
+D7BD   20 05 D8   JSR $D805
+D7C0   4C 30 D8   JMP $D830
+D7C3   20 13 EA   JSR $EA13
+D7C6   A0 07      LDY #$07				; Start of message index.
+D7C8   20 5F D7   JSR $D75F				; Output message indexed by Y ("DEV=").
+D7CB   20 EC D7   JSR $D7EC				; ???
+D7CE   A2 48      LDX #$48
+D7D0   A0 02      LDY #$02
+D7D2   86 C6      STX $C6
+D7D4   84 C7      STY $C7
+D7D6   20 74 D3   JSR $D374
+D7D9   90 E8      BCC $D7C3
+D7DB   8D 19 02   STA $0219
+D7DE   C9 08      CMP #$08
+D7E0   60         RTS					; Return to caller...
+
+D7E1   20 3E E8   JSR $E83E
+D7E4   20 10 D8   JSR $D810
+D7E7   A0 00      LDY #$00				; Start of message index.
+D7E9   20 5F D7   JSR $D75F				; Output message indexed by Y ("  FILE=").
+D7EC   A0 00      LDY #$00
+D7EE   20 5F E9   JSR $E95F
+D7F1   99 49 02   STA $0249,Y
+D7F4   C9 0D      CMP #$0D
+D7F6   F0 05      BEQ $D7FD
+D7F8   C8         INY
+D7F9   C0 14      CPY #$14
+D7FB   90 F1      BCC $D7EE
+D7FD   98         TYA
+D7FE   A2 49      LDX #$49
+D800   A0 02      LDY #$02
+D802   4C 9E D8   JMP LD89E				; Jump to SETNAM and return to the caller from there.
+
+D805   20 C3 D7   JSR $D7C3
+D808   90 03      BCC $D80D
+D80A   20 E1 D7   JSR $D7E1
+D80D   4C 13 EA   JMP $EA13
+D810   A0 05      LDY #$05
+D812   99 2E A4   STA $A42E,Y
+D815   99 A7 00   STA $00A7,Y
+D818   88         DEY
+D819   10 F7      BPL $D812
+D81B   C8         INY
+D81C   8C 2B 02   STY $022B
+D81F   60         RTS
+D820   4E 1E 02   LSR $021E
+D823   BD 04 01   LDA $0104,X
+D826   C9 B0      CMP #$B0
+D828   D0 25      BNE $D84F
+D82A   38         SEC
+D82B   6E 1E 02   ROR $021E
+D82E   30 1F      BMI $D84F
+D830   BA         TSX
+D831   24 DC      BIT $DC
+D833   10 EB      BPL $D820
+D835   BD 02 01   LDA $0102,X
+D838   A0 00      LDY #$00
+D83A   C9 F7      CMP #$F7
+D83C   F0 0E      BEQ $D84C
+D83E   A0 03      LDY #$03
+D840   C9 E4      CMP #$E4
+D842   F0 08      BEQ $D84C
+D844   A0 09      LDY #$09
+D846   C9 D2      CMP #$D2
+D848   F0 02      BEQ $D84C
+D84A   A0 12      LDY #$12
+D84C   8C 26 02   STY $0226
+D84F   A9 00      LDA #$00
+D851   8D 18 02   STA $0218
+D854   AC 20 02   LDY $0220
+D857   A9 2C      LDA #$2C
+D859   99 49 02   STA $0249,Y
+D85C   C8         INY
+D85D   C8         INY
+D85E   99 49 02   STA $0249,Y
+D861   88         DEY
+D862   A5 DD      LDA $DD
+D864   99 49 02   STA $0249,Y
+D867   C8         INY
+D868   C8         INY
+D869   24 DC      BIT $DC
+D86B   10 06      BPL $D873
+D86D   A9 57      LDA #$57
+D86F   EE 18 02   INC $0218
+D872   2C A9 52   BIT $52A9
+D875   99 49 02   STA $0249,Y
+D878   8C 20 02   STY $0220
+D87B   AD 18 02   LDA $0218
+D87E   AE 19 02   LDX $0219
+D881   20 C0 D8   JSR $D8C0
+D884   90 03      BCC $D889
+D886   4C BD D7   JMP $D7BD
+D889   AD 18 02   LDA $0218
+D88C   A0 55      LDY #$55
+D88E   24 DC      BIT $DC
+D890   10 06      BPL $D898
+D892   8C 13 A4   STY $A413
+D895   4C 6F DA   JMP $DA6F
+D898   8C 12 A4   STY $A412
+D89B   4C 2F DA   JMP $DA2F
+
+
+					; ****************************
+					; ***                      ***
+					; *** SETNAM entry point.  ***
+					; ***                      ***
+					; ****************************
+
+					; Accumulator A contains the length of the filename (in bytes/characters).
+					; Index register X contains the low  byte of the filename address.
+					; Index register Y contains the high byte of the filename address.
+											
+LD89E   8D 20 02	STA $0220			; The length byte is stored in RAM at $0220 (called FNLEN).
+XD8A1   86 FA		STX $FA				; The low  byte of the filename address is stored in page 0 RAM at address $FA. (called FNADR).
+XD8A3   84 FB		STY $FB				; The high byte of the filename address is stored in page 0 RAM at address $FB.
+XD8A5   60			RTS					; Return to caller.
+
+D8A6   8D 23 02   STA $0223
+D8A9   A5 F7      LDA $F7
+D8AB   05 F7      ORA $F7
+D8AD   85 F7      STA $F7
+D8AF   60         RTS
+D8B0   48         PHA
+D8B1   A9 12      LDA #$12
+D8B3   8D 26 02   STA $0226
+D8B6   20 AB D5   JSR $D5AB
+D8B9   8D 13 A4   STA $A413
+D8BC   8D 12 A4   STA $A412
+D8BF   68         PLA
+D8C0   8D 18 02   STA $0218
+D8C3   8E 19 02   STX $0219
+D8C6   C9 FF      CMP #$FF
+D8C8   D0 03      BNE $D8CD
+D8CA   4C 47 D7   JMP $D747
+D8CD   20 DC D9   JSR $D9DC
+D8D0   D0 03      BNE $D8D5
+D8D2   4C 44 D7   JMP $D744
+D8D5   AE 32 02   LDX $0232
+D8D8   E0 0A      CPX #$0A
+D8DA   90 03      BCC $D8DF
+D8DC   4C 41 D7   JMP $D741
+D8DF   EE 32 02   INC $0232
+D8E2   AD 18 02   LDA $0218
+D8E5   9D 35 02   STA $0235,X
+D8E8   AD 19 02   LDA $0219
+D8EB   9D 3F 02   STA $023F,X
+D8EE   F0 14      BEQ $D904
+D8F0   C9 01      CMP #$01
+D8F2   D0 05      BNE $D8F9
+D8F4   A9 FF      LDA #$FF
+D8F6   4C 2C D7   JMP $D72C
+D8F9   C9 02      CMP #$02
+D8FB   F0 07      BEQ $D904
+D8FD   C9 03      CMP #$03
+D8FF   D0 05      BNE $D906
+D901   20 09 D9   JSR $D909
+D904   18         CLC
+D905   60         RTS
+D906   4C 14 D9   JMP $D914
+D909   18         CLC
+D90A   24 DC      BIT $DC
+D90C   30 03      BMI $D911
+D90E   6C 12 02   JMP ($0212)
+D911   6C 14 02   JMP ($0214)
+D914   AC 20 02   LDY $0220
+D917   F0 EB      BEQ $D904
+D919   4E 22 02   LSR $0222
+D91C   AD 19 02   LDA $0219
+D91F   20 B1 DA   JSR $DAB1
+D922   AD 18 02   LDA $0218
+D925   09 F0      ORA #$F0
+D927   20 60 DB   JSR $DB60
+D92A   A5 F7      LDA $F7
+D92C   10 05      BPL $D933
+D92E   68         PLA
+D92F   68         PLA
+D930   4C 4D D7   JMP $D74D
+D933   AD 20 02   LDA $0220
+D936   F0 03      BEQ $D93B
+D938   20 6A D9   JSR $D96A
+D93B   20 99 DB   JSR $DB99
+D93E   A5 DC      LDA $DC
+D940   48         PHA
+D941   30 12      BMI $D955
+D943   AE 20 02   LDX $0220
+D946   CA         DEX
+D947   CA         DEX
+D948   CA         DEX
+D949   8E 1F 02   STX $021F
+D94C   BD 49 02   LDA $0249,X
+D94F   9D 58 02   STA $0258,X
+D952   CA         DEX
+D953   10 F7      BPL $D94C
+D955   AD 33 02   LDA $0233
+D958   48         PHA
+D959   20 77 DF   JSR $DF77
+D95C   68         PLA
+D95D   8D 33 02   STA $0233
+D960   68         PLA
+D961   85 DC      STA $DC
+D963   90 04      BCC $D969
+D965   CE 32 02   DEC $0232
+D968   38         SEC
+D969   60         RTS
+D96A   A0 00      LDY #$00
+D96C   B1 FA      LDA ($FA),Y
+D96E   C9 24      CMP #$24
+D970   F0 0D      BEQ $D97F
+D972   C9 40      CMP #$40
+D974   D0 04      BNE $D97A
+D976   20 AE DB   JSR $DBAE
+D979   C8         INY
+D97A   20 89 D9   JSR $D989
+D97D   B1 FA      LDA ($FA),Y
+D97F   20 AE DB   JSR $DBAE
+D982   C8         INY
+D983   CC 20 02   CPY $0220
+D986   D0 F5      BNE $D97D
+D988   60         RTS
+D989   A9 30      LDA #$30
+D98B   20 AE DB   JSR $DBAE
+D98E   A9 3A      LDA #$3A
+D990   4C AE DB   JMP $DBAE
+
+					; ***************************
+					; ***                     ***
+					; *** CLOSE entry point.  ***
+					; ***                     ***
+					; ***************************
+					
+					; Accumulator A contains the logical file number.
+					
+LD993   48         PHA					; Save the logical file number onto the stack for later use.
+XD994   20 25 DA   JSR LDA25			; ???
+XD997   68         PLA					; Recover the logical file number from the stack.
+XD998   20 DC D9   JSR LD9DC			; ???
+XD99B   F0 02      BEQ LD99F			; ???
+XD99D   38         SEC					; Set the carry flag (I assume this indicates an error condition?).
+XD99E   60         RTS					; Return to caller...
+LD99F   20 06 DA   JSR $DA06			; ???
+D9A2   8A         TXA
+D9A3   48         PHA
+D9A4   AD 19 02   LDA $0219
+D9A7   C9 04      CMP #$04
+D9A9   90 03      BCC $D9AE
+D9AB   20 C9 D9   JSR $D9C9
+D9AE   68         PLA
+D9AF   AA         TAX
+D9B0   CE 32 02   DEC $0232
+D9B3   EC 32 02   CPX $0232
+D9B6   F0 0F      BEQ $D9C7
+D9B8   AC 32 02   LDY $0232
+D9BB   B9 35 02   LDA $0235,Y
+D9BE   9D 35 02   STA $0235,X
+D9C1   B9 3F 02   LDA $023F,Y
+D9C4   9D 3F 02   STA $023F,X
+D9C7   18         CLC
+D9C8   60         RTS
+D9C9   AD 19 02   LDA $0219
+D9CC   20 B1 DA   JSR $DAB1
+D9CF   AD 18 02   LDA $0218
+D9D2   09 E0      ORA #$E0
+D9D4   20 60 DB   JSR $DB60
+D9D7   20 99 DB   JSR $DB99
+D9DA   18         CLC
+D9DB   60         RTS
+D9DC   AE 32 02   LDX $0232
+D9DF   CA         DEX
+D9E0   30 05      BMI $D9E7
+D9E2   DD 35 02   CMP $0235,X
+D9E5   D0 F8      BNE $D9DF
+D9E7   60         RTS
+D9E8   20 06 DA   JSR $DA06
+D9EB   A2 01      LDX #$01
+D9ED   BD 18 02   LDA $0218,X
+D9F0   9D 1A 02   STA $021A,X
+D9F3   CA         DEX
+D9F4   10 F7      BPL $D9ED
+D9F6   60         RTS
+D9F7   20 06 DA   JSR $DA06
+D9FA   A2 01      LDX #$01
+D9FC   BD 18 02   LDA $0218,X
+D9FF   9D 1C 02   STA $021C,X
+DA02   CA         DEX
+DA03   10 F7      BPL $D9FC
+DA05   60         RTS
+DA06   BD 35 02   LDA $0235,X
+DA09   8D 18 02   STA $0218
+DA0C   BD 3F 02   LDA $023F,X
+DA0F   8D 19 02   STA $0219
+DA12   60         RTS
+
+DA13   20 25 DA   JSR $DA25
+DA16   AE 32 02   LDX $0232
+DA19   CA         DEX
+DA1A   30 09      BMI $DA25
+DA1C   BD 35 02   LDA $0235,X
+DA1F   20 9F D9   JSR $D99F
+DA22   90 F2      BCC $DA16
+DA24   60         RTS
+DA25   A9 FF      LDA #$FF
+DA27   20 2F DA   JSR $DA2F
+DA2A   A9 FF      LDA #$FF
+DA2C   4C 6F DA   JMP $DA6F
+DA2F   C9 FF      CMP #$FF
+DA31   D0 13      BNE $DA46
+DA33   AD 11 02   LDA $0211
+DA36   AE 33 02   LDX $0233
+DA39   8D 33 02   STA $0233
+DA3C   85 10      STA $10
+DA3E   E0 04      CPX #$04
+DA40   90 03      BCC $DA45
+DA42   4C 8A DB   JMP $DB8A
+DA45   60         RTS
+DA46   20 DC D9   JSR $D9DC
+DA49   F0 03      BEQ $DA4E
+DA4B   4C 47 D7   JMP $D747
+DA4E   20 E8 D9   JSR $D9E8
+DA51   46 DC      LSR $DC
+DA53   AD 1B 02   LDA $021B
+DA56   8D 33 02   STA $0233
+DA59   C9 04      CMP #$04
+DA5B   B0 02      BCS $DA5F
+DA5D   18         CLC
+DA5E   60         RTS
+DA5F   20 AE DA   JSR $DAAE
+DA62   AD 1A 02   LDA $021A
+DA65   20 71 DB   JSR $DB71
+DA68   24 F7      BIT $F7
+DA6A   10 F1      BPL $DA5D
+DA6C   4C 4D D7   JMP $D74D
+DA6F   C9 FF      CMP #$FF
+DA71   D0 11      BNE $DA84
+DA73   AD 11 02   LDA $0211
+DA76   AE 34 02   LDX $0234
+DA79   8D 34 02   STA $0234
+DA7C   E0 04      CPX #$04
+DA7E   90 03      BCC $DA83
+DA80   4C 99 DB   JMP $DB99
+DA83   60         RTS
+DA84   20 DC D9   JSR $D9DC
+DA87   F0 03      BEQ $DA8C
+DA89   4C 47 D7   JMP $D747
+DA8C   20 F7 D9   JSR $D9F7
+DA8F   38         SEC
+DA90   66 DC      ROR $DC
+DA92   AD 1D 02   LDA $021D
+DA95   8D 34 02   STA $0234
+DA98   C9 04      CMP #$04
+DA9A   B0 02      BCS $DA9E
+DA9C   18         CLC
+DA9D   60         RTS
+DA9E   20 B1 DA   JSR $DAB1
+DAA1   AD 1C 02   LDA $021C
+DAA4   20 60 DB   JSR $DB60
+DAA7   24 F7      BIT $F7
+DAA9   10 F1      BPL $DA9C
+DAAB   4C 4D D7   JMP $D74D
+DAAE   09 40      ORA #$40
+DAB0   2C 09 20   BIT $2009
+DAB3   48         PHA
+DAB4   A9 00      LDA #$00
+DAB6   85 F7      STA $F7
+DAB8   2C 22 02   BIT $0222
+DABB   10 0D      BPL $DACA
+DABD   38         SEC
+DABE   6E 2F 02   ROR $022F
+DAC1   20 EB DA   JSR $DAEB
+DAC4   4E 22 02   LSR $0222
+DAC7   4E 2F 02   LSR $022F
+DACA   68         PLA
+DACB   8D 21 02   STA $0221
+DACE   78         SEI
+DACF   20 4D DC   JSR $DC4D
+DAD2   C9 3F      CMP #$3F
+DAD4   D0 03      BNE $DAD9
+DAD6   20 3B DC   JSR $DC3B
+DAD9   AD 01 A0   LDA $A001				; User VIA - ORA.
+DADC   09 08      ORA #$08				; #$08 = 0000_1000. Set bit 3 = IEC ATN to Active.
+DADE   8D 01 A0   STA $A001				; User VIA - ORA.
+DAE1   78         SEI					; Set interrupt disable flag (i.e. disable interrupts).
+DAE2   20 44 DC   JSR $DC44				; ???
+DAE5   20 4D DC   JSR $DC4D				; ???
+DAE8   20 69 DC   JSR $DC69				; Call Delay (1 millisecond).
+DAEB   78         SEI					; Disable interrupts (again?).
+DAEC   20 4D DC   JSR $DC4D
+DAEF   20 5F DC   JSR $DC5F
+DAF2   B0 60      BCS $DB54
+DAF4   20 3B DC   JSR $DC3B
+DAF7   2C 2F 02   BIT $022F
+DAFA   10 0A      BPL $DB06
+DAFC   20 5F DC   JSR $DC5F
+DAFF   90 FB      BCC $DAFC
+DB01   20 5F DC   JSR $DC5F
+DB04   B0 FB      BCS $DB01
+DB06   20 5F DC   JSR $DC5F
+DB09   90 FB      BCC $DB06
+DB0B   20 44 DC   JSR $DC44
+DB0E   A9 08      LDA #$08
+DB10   8D 30 02   STA $0230
+DB13   AD 01 A0   LDA $A001				; User VIA - ORA.
+DB16   CD 01 A0   CMP $A001				; User VIA - ORA.
+DB19   D0 F8      BNE $DB13				; Branch if no bit change?
+DB1B   0A         ASL A					; C <- A <- 0
+DB1C   90 39      BCC $DB57				; Branch if bit 7 of the accumulator (shifted into the carry flag) was '0' (clear). PA7 is the IEC DATA line and '0' means Active.
+DB1E   6E 21 02   ROR $0221
+DB21   B0 05      BCS $DB28
+DB23   20 56 DC   JSR $DC56
+DB26   D0 03      BNE $DB2B
+DB28   20 4D DC   JSR $DC4D
+DB2B   20 3B DC   JSR $DC3B
+DB2E   EA         NOP
+DB2F   EA         NOP
+DB30   EA         NOP
+DB31   EA         NOP
+DB32   AD 01 A0   LDA $A001				; User VIA - ORA.
+DB35   29 DF      AND #$DF				; #$DF = 1101_1111 = Clear bit 5. PA5 is the IEC Data line. Clearing the bit sets it to INACTIVE. 
+DB37   09 10      ORA #$10				; #$10 = 0001_0000 = Set bit 4. PA4 is the IEC Clock line. Setting the bit sets it to ACTIVE.
+DB39   8D 01 A0   STA $A001				; User VIA - ORA.
+DB3C   CE 30 02   DEC $0230
+DB3F   D0 D2      BNE $DB13
+DB41   A9 04      LDA #$04				; Load A with a timer value.
+DB43   8D 09 A0   STA $A009				; User VIA - T2C-H.
+DB46   AD 0D A0   LDA $A00D				; User VIA - IFR.
+DB49   29 20      AND #$20				; #$20 = 0010_0000 = Timer 2 timeout.
+DB4B   D0 0A      BNE $DB57				; Branch if timeout.
+DB4D   20 5F DC   JSR $DC5F
+DB50   B0 F4      BCS $DB46
+DB52   58         CLI
+DB53   60         RTS
+DB54   A9 80      LDA #$80
+DB56   2C A9 03   BIT $03A9
+DB59   20 AB D8   JSR $D8AB
+DB5C   58         CLI
+DB5D   18         CLC
+DB5E   90 3E      BCC $DB9E
+DB60   09 60      ORA #$60
+DB62   8D 21 02   STA $0221
+DB65   20 E1 DA   JSR $DAE1
+DB68   AD 01 A0   LDA $A001				; User VIA - ORA.
+DB6B   29 F7      AND #$F7				; #$F7 = 1111_0111 = Clear bit 3. PA3 is the IEC ATN line. Clearing the bit sets it to INACTIVE.
+DB6D   8D 01 A0   STA $A001				; User VIA - ORA.
+DB70   60         RTS					; Return to caller...
+DB71   09 60      ORA #$60
+DB73   8D 21 02   STA $0221
+DB76   20 E1 DA   JSR $DAE1
+DB79   78         SEI
+DB7A   20 56 DC   JSR $DC56
+DB7D   20 68 DB   JSR $DB68
+DB80   20 3B DC   JSR $DC3B
+DB83   20 5F DC   JSR $DC5F
+DB86   30 FB      BMI $DB83
+DB88   58         CLI
+DB89   60         RTS
+DB8A   78         SEI
+DB8B   20 44 DC   JSR $DC44
+DB8E   AD 01 A0   LDA $A001				; User VIA - ORA.
+DB91   09 08      ORA #$08				; #$08 = 0000_1000 = Set bit 3. PA3 is the IEC ATN line. Setting the bit sets it to ACTIVE.
+DB93   8D 01 A0   STA $A001				; User VIA - ORA.
+DB96   A9 5F      LDA #$5F
+DB98   2C A9 3F   BIT $3FA9
+DB9B   20 B3 DA   JSR $DAB3
+DB9E   20 68 DB   JSR $DB68
+DBA1   8A         TXA
+DBA2   A2 0A      LDX #$0A
+DBA4   CA         DEX
+DBA5   D0 FD      BNE $DBA4
+DBA7   AA         TAX
+DBA8   20 3B DC   JSR $DC3B
+DBAB   4C 4D DC   JMP $DC4D
+DBAE   2C 22 02   BIT $0222
+DBB1   30 06      BMI $DBB9
+DBB3   38         SEC
+DBB4   6E 22 02   ROR $0222
+DBB7   D0 05      BNE $DBBE
+DBB9   48         PHA
+DBBA   20 EB DA   JSR $DAEB
+DBBD   68         PLA
+DBBE   8D 21 02   STA $0221
+DBC1   18         CLC
+DBC2   60         RTS
+DBC3   78         SEI
+DBC4   A9 00      LDA #$00
+DBC6   85 F7      STA $F7
+DBC8   8D 30 02   STA $0230
+DBCB   20 3B DC   JSR $DC3B
+DBCE   20 5F DC   JSR $DC5F
+DBD1   10 FB      BPL $DBCE
+DBD3   A9 01      LDA #$01				; Load A with a timer value.
+DBD5   8D 09 A0   STA $A009				; User VIA - T2C-H.
+DBD8   20 4D DC   JSR LDC4D				; Set IEC DATA signal Inactive.
+DBDB   AD 0D A0   LDA $A00D				; User VIA - IFR.
+DBDE   29 20      AND #$20				; #$20 = 0010_0000 = Timer 2 timeout.
+DBE0   D0 07      BNE $DBE9				; Branch if timeout.
+DBE2   20 5F DC   JSR $DC5F
+DBE5   30 F4      BMI $DBDB
+DBE7   10 1A      BPL $DC03
+DBE9   AD 30 02   LDA $0230
+DBEC   F0 05      BEQ $DBF3
+DBEE   A9 02      LDA #$02
+DBF0   4C 59 DB   JMP $DB59
+DBF3   20 56 DC   JSR $DC56
+DBF6   20 3B DC   JSR $DC3B
+DBF9   A9 40      LDA #$40
+DBFB   20 AB D8   JSR $D8AB
+DBFE   EE 30 02   INC $0230
+DC01   D0 D0      BNE $DBD3
+DC03   A9 08      LDA #$08				; Counter for the number of bits in a byte to process!
+DC05   8D 30 02   STA $0230				; Store accumulator A (counter value).
+DC08   AD 01 A0   LDA $A001				; User VIA - ORA.
+DC0B   CD 01 A0   CMP $A001				; User VIA - ORA.
+DC0E   D0 F8      BNE LDC08				; Branch if any changes?
+DC10   0A         ASL A					; C <- A <- 0.
+DC11   10 F5      BPL LDC08				; Check bit 7 (PA7) for '0' (active) and branch if so. Wait for IEC Data line to go INACTIVE.
+DC13   6E 31 02   ROR $0231				; ???
+DC16   AD 01 A0   LDA $A001				; User VIA - ORA.
+DC19   CD 01 A0   CMP $A001				; User VIA - ORA.
+DC1C   D0 F8      BNE LDC16				; Branch if any changes?
+DC1E   0A         ASL A					; C <- A <- 0.
+DC1F   30 F5      BMI LDC16				; Check bit 7 (PA7) for '1' (inactive) and branch if so. Wait for the IEC Data line to go ACTIVE.
+DC21   CE 30 02   DEC $0230				; Decrement the bit counter?
+DC24   D0 E2      BNE LDC08				; Branch if more to do? It looks to me as though we don't appear to be doing anything?!
+DC26   20 56 DC   JSR LDC56				; ???
+DC29   24 F7      BIT $F7
+DC2B   50 03      BVC $DC30
+DC2D   20 A1 DB   JSR $DBA1
+DC30   18         CLC
+DC31   A5 F7      LDA $F7
+DC33   F0 01      BEQ $DC36
+DC35   38         SEC
+DC36   AD 31 02   LDA $0231
+DC39   58         CLI
+DC3A   60         RTS
+
+									; ***************************
+									; ***                     ***
+									; ***  Set CLK Inactive.  ***
+									; ***                     ***
+									; ***************************
+
+LDC3B   AD 01 A0   LDA $A001		; User VIA - ORA.
+XDC3E   29 EF      AND #$EF			; Clear bit 4 to FALSE. Drive CLK INACTIVE (+5V on IEC bus).
+XDC40   8D 01 A0   STA $A001		; User VIA - ORA.
+XDC43   60         RTS				; Return to caller...
+
+									; *************************
+									; ***                   ***
+									; ***  Set CLK Active.  ***
+									; ***                   ***
+									; *************************
+									
+LDC44   AD 01 A0   LDA $A001		; User VIA - ORA.
+XDC47   09 10      ORA #$10			; Set bit 4 to TRUE. Drive CLK ACTIVE (0V to IEC bus).
+XDC49   8D 01 A0   STA $A001		; User VIA - ORA.
+XDC4C   60         RTS				; Return to caller...
+
+									; ****************************
+									; ***                      ***
+									; ***  Set DATA Inactive.  ***
+									; ***                      ***
+									; ****************************
+									
+LDC4D   AD 01 A0   LDA $A001		; User VIA - ORA.
+XDC50   29 DF      AND #$DF			; Clear bit 5 to FALSE. Drive DATA INACTIVE (+5V to IEC bus).
+XDC52   8D 01 A0   STA $A001		; USer VIA - ORA.
+XDC55   60         RTS				; Return to caller...
+
+									; **************************
+									; ***                    ***
+									; ***  Set DATA Active.  ***
+									; ***                    ***
+									; **************************
+									
+LDC56   AD 01 A0   LDA $A001		; User VIA - ORA.
+XDC59   09 20      ORA #$20			; Set bit 5 to TRUE. Drive DATA ACTIVE (0V to IEC bus).
+XDC5B   8D 01 A0   STA $A001		; User VIA - ORA.
+XDC5E   60         RTS				; Return to caller...
+
+									; ************************
+									; ***                  ***
+									; ***  ??????????????  ***
+									; ***                  ***
+									; ************************
+									
+LDC5F   AD 01 A0   LDA $A001		; User VIA - ORA.
+XDC62   CD 01 A0   CMP $A001		; ?
+XDC65   D0 F8      BNE LDC5F		; ?
+XDC67   0A         ASL A			; C <- Accumulator <- 0
+XDC68   60         RTS				; Return to caller...
+
+									; ***********************************
+									; ***                             ***
+									; ***  Perform a software delay.  ***
+									; ***                             ***
+									; ***********************************
+									
+									; 6 + 2 + 2 + ($B8 * (2 + 3)) + 2 + 6 =
+									; 10 + (184 * 5) + 8 =
+									; 18 + 920 =
+									; 938 Cycles at 1 MHz.
+									; 1 MHz = 1 microsecond per cycle.
+									; The delay is therefore 938 microseconds. Say 1 millisecond for friends!
+									
+									; Implied JSR                                                        6 Cycles.
+LDC69   8A         TXA				; Temporarily store index register X into the accumulator.           2 Cycles.
+XDC6A   A2 B8      LDX #$B8			; Load index register X with what looks like a software delay count. 2 Cycles.
+LDC6C   CA         DEX				; Decrement index register X.                                        2 Cycles.
+XDC6D   D0 FD      BNE LDC6C		; Loop until index register X reaches 0.                             3 Cycles.
+XDC6F   AA         TAX				; Restore index register X from the accumulator.                     2 Cycles.
+XDC70   60         RTS				; Return to caller...                                                6 Cycles.
+
+									; *********************************************************
+									; ***                                                   ***
+									; ***  These are data tables for the filer commands...  ***
+									; ***                                                   ***
+									; *********************************************************
+
+									; D = Directory.
+									; T = Type.
+									; N = Rename.
+									; S = Scratch.
+									; F = Format.
+									; C = Clear.
+									; M = Merge.
+									; I = Initialise.
+									; V = Validate.
+									; P = Put.
+									; G = Get.
+									; R = Run.
+									
+LDC71				DB "$TRSNNCIVPGR"	; Filer commands are 'converted' into these characters?
+LDC7D				DB "DTNSFCMIVPGR"	; Filer command character codes.
+
+LDC89				DW	...				; 16-bit address table for filer command execution.
+LDC8A				EQU	LDC89+1
+
+DC71   24 54      BIT $54
+DC73   52         ???
+DC74   53         ???
+DC75   4E 4E 43   LSR $434E
+DC78   49 56      EOR #$56
+DC7A   50 47      BVC $DCC3
+DC7C   52         ???
+
+DC7D   44         ???
+DC7E   54         ???
+DC7F   4E 53 46   LSR $4653
+DC82   43         ???
+DC83   4D 49 56   EOR $5649
+DC86   50 47      BVC $DCCF
+DC88   52         ???
+
+DC89   28         PLP
+DC8A   DD A5 DD   CMP $DDA5,X
+DC8D   E4 DC      CPX $DC
+DC8F   F0 DC      BEQ $DC6D
+DC91   16 DD      ASL $DD,X
+DC93   04         ???
+DC94   DD F3 DC   CMP $DCF3,X
+DC97   F6 DC      INC $DC,X
+DC99   01 DD      ORA ($DD,X)
+DC9B   CC DD 77   CPY $77DD
+DC9E   DE 7C DE   DEC $DE7C,X
+
+                   ; KEYF1 handler.
+LDCA1   20 AD DC   JSR LDCAD			; Call subroutine. Return here after the command has actually executed.
+XDCA4   20 13 DA   JSR LDA13			; ???
+XDCA7   20 77 DF   JSR LDF77			; ???
+XDCAA   4C A1 E1   JMP COMIN			; Return back to MONITOR...
+
+LDCAD   A0 0B      LDY #$0B				; Offset of desired message (from LD4D6).
+XDCAF   20 5F D7   JSR LD75F			; Output the message located at LD4D6 + $0B.
+XDCB2   20 73 E9   JSR $E973			; $E973 = REDOUT (Read and Echo a character from the KBD or TTY).
+XDCB5   A2 0B      LDX #$0B				; Load index register X with $0B.
+LDCB7   DD 7D DC   CMP LDC7D,X			; Look up the character just read at a table stating at LDC7D and indexed by X. "DTNSFCMIVPGR"
+XDCBA   F0 0C      BEQ LDCC8			; Branch if a character match found.
+XDCBC   CA         DEX					; No match found. Decrement the index register X.
+XDCBD   10 F8      BPL LDCB7			; And loop for all characters to match.
+										; No character match found. Must be an illegal character/commend from the user then.
+XDCBF   20 D4 E7   JSR $E7D4			; $E7D4 = OM. Print a '?'.
+XDCC2   20 F0 E9   JSR $E9F0			; $E9F0 = CRLF. Print a <CR> <LF>
+XDCC5   4C AD DC   JMP LDCAD			; Keep looping... Presumably until we have finished with the filer?
+
+LDCC8   BD 71 DC   LDA LDC71,X			; Found a character/command match. Convert to the character "$TRSNNCIVPGR".
+XDCCB   8D 24 02   STA $0224			; And store it away in RAM.
+XDCCE   8A         TXA					; Transfer the byte index into the command string into index register X.
+XDCCF   0A         ASL A				; Multiply by 2 (convert from a byte offset to a word offset).
+XDCD0   AA         TAX					; Transfer it back into index register X.
+XDCD1   BD 8A DC   LDA LDC8A,X			; Pick up the HIGH BYTE of the routine to execute.
+XDCD4   48         PHA					; Save onto the stack.
+XDCD5   BD 89 DC   LDA LDC89,X			; Pick up the LOW BYTE of the routine to execute.
+XDCD8   48         PHA					; Save onto the stack.
+XDCD9   A2 00      LDX #$00				; Clear the index register X to 0 for some reason?
+XDCDB   60         RTS					; Return to caller... NO! Execute the command routine...
+										; Note that the address on the stack is actually one byte less than the desired transfer address due to the operation of the 6502 CPU.
+										; The stack contains the return address back into the filer...
+
+DCDC   20 50 DF   JSR $DF50
+DCDF   AD 24 02   LDA $0224
+DCE2   4C AE DB   JMP $DBAE
+DCE5   20 F0 E9   JSR $E9F0
+DCE8   20 05 D8   JSR $D805
+DCEB   20 DC DC   JSR $DCDC
+DCEE   4C 6A D9   JMP $D96A
+DCF1   4C E5 DC   JMP $DCE5
+DCF4   4C E5 DC   JMP $DCE5
+DCF7   20 F0 E9   JSR $E9F0
+DCFA   20 C3 D7   JSR $D7C3
+DCFD   90 F8      BCC $DCF7
+DCFF   4C DC DC   JMP $DCDC
+DD02   4C F7 DC   JMP $DCF7
+DD05   20 F0 E9   JSR $E9F0
+DD08   20 05 D8   JSR $D805
+DD0B   20 F5 DE   JSR $DEF5
+DD0E   D0 06      BNE $DD16
+DD10   20 DC DC   JSR $DCDC
+DD13   4C 6A D9   JMP $D96A
+DD16   60         RTS
+DD17   20 05 DD   JSR $DD05
+DD1A   A9 2C      LDA #$2C
+DD1C   20 AE DB   JSR $DBAE
+DD1F   A9 30      LDA #$30
+DD21   20 AE DB   JSR $DBAE
+DD24   A9 31      LDA #$31
+DD26   4C AE DB   JMP $DBAE
+DD29   20 F0 E9   JSR $E9F0
+DD2C   20 C3 D7   JSR $D7C3
+DD2F   90 F8      BCC $DD29
+DD31   20 13 EA   JSR $EA13
+DD34   A9 24      LDA #$24				; Set accumulator A to a '$' character.
+DD36   8D 49 02   STA $0249				; Store a '$' into RAM at $0249.
+DD39   A9 01      LDA #$01				; A 1 character filename...
+DD3B   A2 49      LDX #$49				; \ ...stored at RAM address $0249.
+DD3D   A0 02      LDY #$02				; /
+DD3F   20 9E D8   JSR LD89E				; Call SETNAM.
+DD42   A9 00      LDA #$00
+DD44   8D 1A 02   STA $021A
+DD47   AE 19 02   LDX $0219
+DD4A   20 B0 D8   JSR $D8B0
+DD4D   20 71 E8   JSR $E871
+DD50   AD 1A 02   LDA $021A
+DD53   20 2F DA   JSR $DA2F
+DD56   A0 03      LDY #$03
+DD58   8C 20 02   STY $0220
+DD5B   20 C3 DB   JSR $DBC3
+DD5E   8D 2B 02   STA $022B
+DD61   20 C3 DB   JSR $DBC3
+DD64   8D 2C 02   STA $022C
+DD67   A4 F7      LDY $F7
+DD69   D0 3A      BNE $DDA5
+DD6B   AC 20 02   LDY $0220
+DD6E   88         DEY
+DD6F   D0 E7      BNE $DD58
+DD71   AE 2C 02   LDX $022C
+DD74   AD 2B 02   LDA $022B
+DD77   20 00 DF   JSR $DF00
+DD7A   A9 20      LDA #$20
+DD7C   20 BC E9   JSR $E9BC
+DD7F   20 C3 DB   JSR $DBC3
+DD82   A6 F7      LDX $F7
+DD84   D0 1F      BNE $DDA5
+DD86   C9 00      CMP #$00
+DD88   F0 0C      BEQ $DD96
+DD8A   C9 20      CMP #$20
+DD8C   B0 02      BCS $DD90
+DD8E   A9 20      LDA #$20
+DD90   20 BC E9   JSR $E9BC
+DD93   4C 7F DD   JMP $DD7F
+DD96   A9 0D      LDA #$0D
+DD98   20 BC E9   JSR $E9BC
+DD9B   20 6E D7   JSR $D76E
+DD9E   B0 05      BCS $DDA5
+DDA0   A0 02      LDY #$02
+DDA2   4C 58 DD   JMP $DD58
+DDA5   60         RTS
+DDA6   20 F0 E9   JSR $E9F0
+DDA9   18         CLC
+DDAA   20 B7 D7   JSR $D7B7
+DDAD   20 71 E8   JSR $E871
+DDB0   20 C3 DB   JSR $DBC3
+DDB3   B0 15      BCS $DDCA
+DDB5   C9 0D      CMP #$0D
+DDB7   D0 0B      BNE $DDC4
+DDB9   20 6E D7   JSR $D76E
+DDBC   B0 0C      BCS $DDCA
+DDBE   20 F0 E9   JSR $E9F0
+DDC1   4C B0 DD   JMP $DDB0
+DDC4   20 BC E9   JSR $E9BC
+DDC7   4C B0 DD   JMP $DDB0
+DDCA   4C BC E9   JMP $E9BC
+DDCD   20 F0 E9   JSR $E9F0
+DDD0   20 A3 E7   JSR $E7A3
+DDD3   B0 FB      BCS $DDD0
+DDD5   20 3E E8   JSR $E83E
+DDD8   AD 1C A4   LDA $A41C
+DDDB   8D 27 02   STA $0227
+DDDE   AD 1D A4   LDA $A41D
+DDE1   8D 28 02   STA $0228
+DDE4   20 A7 E7   JSR $E7A7
+DDE7   B0 FB      BCS $DDE4
+DDE9   AD 1C A4   LDA $A41C
+DDEC   8D 29 02   STA $0229
+DDEF   AD 1D A4   LDA $A41D
+DDF2   8D 2A 02   STA $022A
+DDF5   20 F0 E9   JSR $E9F0
+DDF8   38         SEC
+DDF9   20 B3 D7   JSR $D7B3
+DDFC   A0 00      LDY #$00
+DDFE   20 2C DE   JSR $DE2C
+DE01   A5 DD      LDA $DD
+DE03   20 AE DB   JSR $DBAE
+DE06   A5 DE      LDA $DE
+DE08   20 AE DB   JSR $DBAE
+DE0B   38         SEC
+DE0C   A5 DD      LDA $DD
+DE0E   ED 29 02   SBC $0229
+DE11   A5 DE      LDA $DE
+DE13   ED 2A 02   SBC $022A
+DE16   B0 12      BCS $DE2A
+DE18   B1 DD      LDA ($DD),Y
+DE1A   20 AE DB   JSR $DBAE
+DE1D   20 6E D7   JSR $D76E
+DE20   B0 09      BCS $DE2B
+DE22   E6 DD      INC $DD
+DE24   D0 02      BNE $DE28
+DE26   E6 DE      INC $DE
+DE28   D0 E1      BNE $DE0B
+DE2A   60         RTS
+DE2B   60         RTS
+DE2C   AD 27 02   LDA $0227
+DE2F   85 DD      STA $DD
+DE31   AD 28 02   LDA $0228
+DE34   85 DE      STA $DE
+DE36   60         RTS
+
+
+LDE37					DB "STARTUP,P,R"
+;
+;DE37   53         ???
+;DE38   54         ???
+;DE39   41 52      EOR ($52,X)
+;DE3B   54         ???
+;DE3C   55 50      EOR $50,X
+;DE3E   2C 50 2C   BIT $2C50
+;DE41   52         ???
+
+LDE42   A9 0B      LDA #$0B			; An 11 character filename...
+DE44   A2 37      LDX #$37			; \ ...starting at ROM memory address LDE37 (the startup program - if it exists).
+DE46   A0 DE      LDY #$DE			; /
+DE48   20 9E D8   JSR LD89E			; Call SETNAM.
+DE4B   A9 00      LDA #$00
+DE4D   A2 08      LDX #$08
+DE4F   A0 01      LDY #$01
+DE51   D0 02      BNE $DE55
+DE53   A0 00      LDY #$00
+DE55   8C 24 02   STY $0224
+DE58   20 B0 D8   JSR $D8B0
+DE5B   90 0B      BCC $DE68
+DE5D   A9 49      LDA #$49
+DE5F   8D 24 02   STA $0224
+DE62   20 DC DC   JSR $DCDC
+DE65   4C 99 DB   JMP $DB99
+
+DE68   AD 18 02   LDA $0218
+DE6B   20 2F DA   JSR $DA2F
+DE6E   4C 81 DE   JMP $DE81
+DE71   A2 00      LDX #$00
+DE73   8E 24 02   STX $0224
+DE76   F0 09      BEQ $DE81
+DE78   A2 00      LDX #$00
+DE7A   8E 24 02   STX $0224
+DE7D   18         CLC
+DE7E   20 B3 D7   JSR $D7B3
+DE81   A2 00      LDX #$00
+DE83   8E 29 02   STX $0229
+DE86   8E 2A 02   STX $022A
+DE89   20 C3 DB   JSR $DBC3
+DE8C   85 DD      STA $DD
+DE8E   A5 F7      LDA $F7
+DE90   4A         LSR A
+DE91   4A         LSR A
+DE92   90 03      BCC $DE97
+DE94   4C 4A D7   JMP $D74A
+DE97   20 C3 DB   JSR $DBC3
+DE9A   85 DE      STA $DE
+DE9C   AD 2A 02   LDA $022A
+DE9F   F0 03      BEQ $DEA4
+DEA1   20 2C DE   JSR $DE2C
+DEA4   A5 DD      LDA $DD
+DEA6   8D 27 02   STA $0227
+DEA9   A5 DE      LDA $DE
+DEAB   8D 28 02   STA $0228
+DEAE   A9 FD      LDA #$FD
+DEB0   25 F7      AND $F7
+DEB2   85 F7      STA $F7
+DEB4   20 6E D7   JSR $D76E
+DEB7   90 01      BCC $DEBA
+DEB9   60         RTS
+DEBA   20 C3 DB   JSR $DBC3
+DEBD   AA         TAX
+DEBE   A5 F7      LDA $F7
+DEC0   4A         LSR A
+DEC1   4A         LSR A
+DEC2   B0 EA      BCS $DEAE
+DEC4   8A         TXA
+DEC5   AC 29 02   LDY $0229
+DEC8   F0 0C      BEQ $DED6
+DECA   A0 00      LDY #$00
+DECC   D1 DD      CMP ($DD),Y
+DECE   F0 08      BEQ $DED8
+DED0   A9 10      LDA #$10
+DED2   20 AB D8   JSR $D8AB
+DED5   2C 91 DD   BIT $DD91
+DED8   E6 DD      INC $DD
+DEDA   D0 02      BNE $DEDE
+DEDC   E6 DE      INC $DE
+DEDE   24 F7      BIT $F7
+DEE0   50 CC      BVC $DEAE
+DEE2   20 13 DA   JSR $DA13
+DEE5   18         CLC
+DEE6   A6 DD      LDX $DD
+DEE8   A4 DE      LDY $DE
+DEEA   AD 24 02   LDA $0224
+DEED   D0 01      BNE $DEF0
+DEEF   60         RTS
+DEF0   68         PLA
+DEF1   68         PLA
+DEF2   6C 27 02   JMP ($0227)
+
+LDEF5   A0 47      LDY #$47				; Message index.
+XDEF7   20 5F D7   JSR LD75F			; Output message indexed by Y.
+XDEFA   20 73 E9   JSR $E973			; ???
+XDEFD   C9 59      CMP #$59				; ASCII 'Y'.
+XDEFF   60         RTS					; Return to caller...
+
+DF00   20 27 DF   JSR $DF27
+DF03   F8         SED
+DF04   CA         DEX
+DF05   30 13      BMI $DF1A
+DF07   18         CLC
+DF08   A9 56      LDA #$56
+DF0A   6D 2B 02   ADC $022B
+DF0D   8D 2B 02   STA $022B
+DF10   AD 2C 02   LDA $022C
+DF13   69 02      ADC #$02
+DF15   8D 2C 02   STA $022C
+DF18   D0 EA      BNE $DF04
+DF1A   D8         CLD
+DF1B   AD 2C 02   LDA $022C
+DF1E   20 46 EA   JSR $EA46
+DF21   AD 2B 02   LDA $022B
+DF24   4C 46 EA   JMP $EA46
+DF27   A0 00      LDY #$00
+DF29   38         SEC
+DF2A   E9 64      SBC #$64
+DF2C   C8         INY
+DF2D   B0 FB      BCS $DF2A
+DF2F   88         DEY
+DF30   8C 2C 02   STY $022C
+DF33   69 64      ADC #$64
+DF35   38         SEC
+DF36   A0 00      LDY #$00
+DF38   38         SEC
+DF39   E9 0A      SBC #$0A
+DF3B   C8         INY
+DF3C   B0 FB      BCS $DF39
+DF3E   88         DEY
+DF3F   69 0A      ADC #$0A
+DF41   8D 2B 02   STA $022B
+DF44   98         TYA
+DF45   0A         ASL A
+DF46   0A         ASL A
+DF47   0A         ASL A
+DF48   0A         ASL A
+DF49   0D 2B 02   ORA $022B
+DF4C   8D 2B 02   STA $022B
+DF4F   60         RTS
+DF50   AD 19 02   LDA $0219
+DF53   8D 1D 02   STA $021D
+DF56   8D 34 02   STA $0234
+DF59   38         SEC
+DF5A   66 DC      ROR $DC
+DF5C   20 B1 DA   JSR $DAB1
+DF5F   A9 6F      LDA #$6F
+DF61   4C 60 DB   JMP $DB60
+DF64   AD 19 02   LDA $0219
+DF67   8D 1B 02   STA $021B
+DF6A   8D 33 02   STA $0233
+DF6D   46 DC      LSR $DC
+DF6F   20 AE DA   JSR $DAAE
+DF72   A9 6F      LDA #$6F
+DF74   4C 71 DB   JMP $DB71
+DF77   20 64 DF   JSR $DF64
+DF7A   A0 00      LDY #$00
+DF7C   A2 04      LDX #$04
+DF7E   20 A8 DF   JSR $DFA8
+DF81   CA         DEX
+DF82   D0 FA      BNE $DF7E
+DF84   A9 FF      LDA #$FF
+DF86   20 2F DA   JSR $DA2F
+DF89   AD 49 02   LDA $0249
+DF8C   C9 32      CMP #$32
+DF8E   B0 02      BCS $DF92
+DF90   18         CLC
+DF91   60         RTS
+DF92   8C 20 02   STY $0220
+DF95   20 F0 E9   JSR $E9F0
+DF98   A0 00      LDY #$00
+DF9A   B9 49 02   LDA $0249,Y
+DF9D   20 BC E9   JSR $E9BC
+DFA0   C8         INY
+DFA1   CC 20 02   CPY $0220
+DFA4   D0 F4      BNE $DF9A
+DFA6   38         SEC
+DFA7   60         RTS
+DFA8   20 C3 DB   JSR $DBC3
+DFAB   99 49 02   STA $0249,Y
+DFAE   C9 2C      CMP #$2C
+DFB0   F0 07      BEQ $DFB9
+DFB2   C9 0D      CMP #$0D
+DFB4   F0 03      BEQ $DFB9
+DFB6   C8         INY
+DFB7   D0 EF      BNE $DFA8
+DFB9   A9 20      LDA #$20
+DFBB   99 49 02   STA $0249,Y
+DFBE   C8         INY
+DFBF   60         RTS
+
+DFC0   20 13 DA   JSR LDA13	; Call CLOALL.
+DFC3   4C A1 E1   JMP $E1A1	; MONITOR $E1A1 = COMIN.
+
+;DFC6   FF         ???	; Unused?
+;DFC7   FF         ???	; Unused?
+;DFC8   FF         ???	; Unused?
+;DFC9   FF         ???	; Unused?
+;DFCA   FF         ???	; Unused?
+;DFCB   FF         ???	; Unused?
+;DFCC   FF         ???	; Unused?
+;DFCD   FF         ???	; Unused?
+;DFCE   FF         ???	; Unused?
+;DFCF   FF         ???	; Unused?
+;DFD0   00         BRK	; Unused?
+;DFD1   00         BRK	; Unused?
+;DFD2   00         BRK	; Unused?
+;DFD3   00         BRK	; Unused?
+;DFD4   00         BRK	; Unused?
+;DFD5   00         BRK	; Unused?
+;DFD6   00         BRK	; Unused?
+;DFD7   00         BRK	; Unused?
+?DFD8   01 4C      ORA ($4C,X)			; ???
+?DFDA   C0 DF      CPY #$DF				; ???
+XDFDC   4C 7D DE   JMP LDE7D			; 
+XDFDF   4C 78 DE   JMP LDE78			; 
+XDFE2   4C 4F DE   JMP LDE4F			; 
+XDFE5   4C 53 DE   JMP LDE53			; 
+XDFE8   4C A6 D8   JMP LD8A6			; 
+XDFEB   4C 9E D8   JMP LD89E			; SETNAM entry point.
+XDFEE   4C B0 D8   JMP LD8B0			; OPEN   entry point.
+XDFF1   4C 93 D9   JMP LD993			; CLOSE  entry point.
+XDFF4   4C 13 DA   JMP LDA13			; CLOALL entry point.
+XDFF7   4C 2F DA   JMP LDA2F			; CHIN   entry point.
+XDFFA   4C 6F DA   JMP LDA6F			; CHOUT  entry point.
+XDFFD   4C 25 DA   JMP LDA25			; CLRCHN entry point.
+XE000              .END
+

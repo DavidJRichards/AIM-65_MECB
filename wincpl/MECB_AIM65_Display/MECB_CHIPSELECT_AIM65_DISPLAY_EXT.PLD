@@ -1,0 +1,72 @@
+Name            MECB_ChipSelect_AIM65_EXT;
+Partno          U1;
+Date            08/2023;
+Revision        01;
+Designer        Greg;
+Company         Digicool Things;
+Assembly        None;
+Location        None;
+Device          g16v8as;
+
+/****************************************************************/
+/*                                                              */
+/* Note: For an ATF16V8 in Simple Mode pins 15 and 16           */
+/*  (center macrocells) are permanently configured as           */
+/*  combinatorial outputs.                                      */   
+/*                                                              */
+/****************************************************************/
+
+/*
+ *
+ * Inputs: Inputs were assigned based on the ECB bus pin sequence (for ease of PCB routing).
+ * Active low pins are inverted at the pin so all signals can be consistently treated as positive logic.
+ *
+ */
+
+Pin [19, 4, 3, 2, 1] = [a7..a3];
+field memoffset = [a7..a3];
+
+Pin 18  = a11;
+Pin  7  = a12;
+Pin 12  = a13;
+Pin  5  = a14;
+Pin 13  = a15;
+
+Pin  9  = clk;
+Pin  8  = !iorq;
+Pin 11  = !mreq;
+Pin  6  = !rd; 
+Pin 17  = !wr;
+
+/*
+ *
+ * Outputs: Define outputs
+ * Active low pins are inverted at the pin so all signals can be consistently treated as positive logic.
+ *
+ */
+
+Pin 14 = !cs0;
+Pin 15 = !cs1;
+Pin 16 = !cs2;
+
+/*
+ *
+ * Logic:  I/O Address Allocations
+ *
+ * cs0 : (Display) iorq asserted for I/O address range 0x8D0 - 0x8D7 
+ * csx : (Keyboard)iorq asserted for I/O address range 0x8e0 - 0x8FF
+ * csy : 6532 RS (memory)                              0x800 - 0x87F
+ * cs1 : memory
+ * cs2 : 6532 CE                                   0x800-87F - 0x8D0-0x8FF
+ *
+ */
+
+eqn_memory   = memoffset:[00..7F];
+eqn_keyboard = memoffset:[E0..FF];
+eqn_display  = memoffset:[D0..D7];
+
+cs0 = iorq & !a11 & eqn_display;
+csx = iorq & !a11 & eqn_keyboard;
+csy = iorq & !a11 & eqn_memory;
+cs1 = csy;
+cs2 = csx # csy;

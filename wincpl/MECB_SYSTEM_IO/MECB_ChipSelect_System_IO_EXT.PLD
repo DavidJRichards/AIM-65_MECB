@@ -1,0 +1,65 @@
+Name            MECB_ChipSelect_SYS_IO_EXT;
+Partno          U1;
+Date            08/2023;
+Revision        01;
+Designer        Greg;
+Company         Digicool Things;
+Assembly        None;
+Location        None;
+Device          g16v8as;
+
+/****************************************************************/
+/*                                                              */
+/* Note: For an ATF16V8 in Simple Mode pins 15 and 16           */
+/*  (center macrocells) are permanently configured as           */
+/*  combinatorial outputs.                                      */   
+/*                                                              */
+/****************************************************************/
+
+Pin [19, 4, 3, 2, 1] = [a7..a3];
+field memoffset = [a7..a3];
+
+Pin 18  = a11;
+Pin  7  = a12;
+Pin 12  = a13;
+Pin  5  = a14;
+Pin 13  = a15;
+
+Pin  9  = clk;
+Pin  8 	= !iorq;
+Pin 11  = !mreq;
+Pin  6 	= !rd; 
+Pin 17  = !wr;
+
+/*
+ *
+ * Outputs: Define outputs
+ * Active low pins are inverted at the pin so all signals can be consistently treated as positive logic.
+ *
+ */
+
+Pin 14 = !cs0;
+Pin 15 = !cs1;
+Pin 16 = !cs2;
+
+/*
+ *
+ * Logic: Systeme I/O Card - I/O Address Allocations
+ *
+ * cs0 : (UART) iorq asserted for I/O address range 0x20 - 0x27
+ * cs1 : (RTC)  iorq asserted for I/O address range 0x40 - 0x4F
+ * cs2 : (VIA)  iorq asserted for I/O address range 0xC0 - 0xCF
+ *
+ */
+
+//eqn_UART = memoffset:[20..27];
+//eqn_RTC  = memoffset:[40..4F];
+eqn_VIA  = memoffset:[C0..CF];
+
+//cs0 = iorq & clk & !a11 & eqn_UART; 
+//cs1 = iorq & clk & !a11 & eqn_RTC;
+cs2 = iorq &       !a11 & eqn_VIA; 
+
+
+
+

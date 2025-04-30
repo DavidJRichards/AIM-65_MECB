@@ -1,0 +1,23 @@
+
+CUPL(WM)        5.0a  Serial# 60008009
+Device          g16v8as  Library DLIB-h-40-2
+Created         Sat Apr 26 22:15:15 2025
+Name            MECB_ChipSelect_6551_ext
+Partno          U1
+Revision        01
+Date            07/2024
+Designer        Greg
+Company         Digicool Things
+Assembly        None
+Location        None
+*QP20 
+*QF2194 
+*G0 
+*F0 
+*L01024 01011001011011111111111110110111
+*L02048 00000000010101010011000100000000
+*L02112 00000000111101111111111111111111
+*L02144 11111111111111111111111111111111
+*L02176 111111111111111110
+*C0D9A
+*7CE0
