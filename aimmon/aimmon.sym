@@ -33,6 +33,8 @@ ABSY1             fc6e
 ABSX              fc72
 ABSOL             fca6
 ABSOL1            fcb2
+BIOS_START        a800
+BIOS_INIT         a808
 BASIEN            b000
 BASIRE            b003
 BOTLN             00e1

@@ -1,5 +1,5 @@
 ;TELEMARK CROSS ASSEMBLER (TASM)  http://www.halcyon.com/squakvly/
-; wine ../tasm/TASM.EXE -65 -s -g0  aimmon.asm aimmon.hex 
+; wine ./TASM.EXE -65 -s -g0  aimmon.asm aimmon.hex 
 ; sort -k2 < aimmon.sym >aimmon-sort.sym
 ; srec_cat  aimmon.hex -Intel -offset -0xe000 -o aimmon.bin -Binary 
 ; cat aimmon.bin > /dev/ttyS0
@@ -29,6 +29,9 @@ MECB_VIA        = MECBIO + $C0 ; 6522 $A800
 MECB_DISPLAY    = MECBIO + $D0 ; 6520 $AC00
 MECB_ACIA       = MECBIO + $D8 ; 6551 used in mecb_bios
 MECB_SPARE      = MECBIO + $A0 ;  not used
+
+BIOS_START      = $A800
+BIOS_INIT       = BIOS_START + $8
 
 ;ROCKWELL INTERNATIONAL
 ;MICROELECTRONIC DEVICES
@@ -400,10 +403,10 @@ RS1    LDA INTAB1,X    ;PB1-PB0,PA7-PA0 FOR PRNTR
        NOP
        NOP ;       
 
-       JSR  $8008       ; bios_init
-;       NOP
-;       NOP
-;       NOP
+;       JSR  BIOS_INIT  ; cutom bios extensions
+       NOP
+       NOP
+       NOP
 
        NOP
        NOP

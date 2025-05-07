@@ -167,6 +167,8 @@ DIV1              a4f4
 DIV8              a4f5
 DIV64             a4f6
 DI1024            a4f7
+BIOS_START        a800
+BIOS_INIT         a808
 BASIEN            b000
 BASIRE            b003
 ASSEM             d000

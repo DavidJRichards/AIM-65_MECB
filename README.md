@@ -10,20 +10,22 @@ The memory map of the RAM is unchanged but the periheral devices have been re-wo
 ## The new I/O memory map
 
 These macro definitions are used in the Basic and Monitor sources:
+<br>
 
-
-| Name| Location| Device|
-|-----|---------|-------|
-|MECBIO          |= $A400||
-|MECB_USER       |= MECBIO + $B0 | 6522 $A000|
-|MECB_RAM        |= MECBIO + $00 | 6532 $A400|
-|MECB_KEYBOARD   |= MECBIO + $E0 | 6532 $A480|
-|MECB_VIA        |= MECBIO + $C0 | 6522 $A800|
-|MECB_DISPLAY    |= MECBIO + $D0 | 6520 $AC00|
-|MECB_ACIA       |= MECBIO + $D8 | 6551 used in mecb_bios|
-|MECB_SPARE      |= MECBIO + $A0 |  not used|
+| Name           | Location      | Device        |Original Loc.      |
+|----------------|---------------|---------------|-------------------|
+|MECBIO          |= $A400        |               |                   |
+|MECB_USER       |= MECBIO + $B0 | 6522          | $A000             |
+|MECB_RAM        |= MECBIO + $00 | 6532          | $A400             |
+|MECB_KEYBOARD   |= MECBIO + $E0 | 6532          | $A480             |
+|MECB_VIA        |= MECBIO + $C0 | 6522          | $A800             |
+|MECB_DISPLAY    |= MECBIO + $D0 | 6520          | $AC00             |
+|MECB_ACIA       |= MECBIO + $D8 | 6551          | used in mecb_bios |
+|MECB_SPARE      |= MECBIO + $A0 |               | not used          |
 
 ## RAM
+
+<br>
 
 | Name   | Begin| End |
 |--------|------|-----|
@@ -34,38 +36,159 @@ These macro definitions are used in the Basic and Monitor sources:
 
 ## ROM software
 
-| Name   | Begin | End  |
-|--------|-------|------|
-| Monitor| E000  | FFFF |
-| Basic  | B000  | CFFF |
-| Bios   | 8000  | 81FF |
-| Display| 9900  | 9FFF |
-| AH505  | D000  | DFFF |
+<br>
+
+| Name   | Begin| End |
+|--------|------|-----|
+| Monitor| E000 | FFFF|
+| Basic  | B000 | CFFF|
+| Bios   | A800 | AFFF|
+| Display| 9900 | 9FFF|
+| AH5050 | D000 | DFFF|
 
 ## Video display
 
-This is the Scott Baker AIM-65 version of the Rockwell design
+* This is the Scott Baker AIM-65 version of the Rockwell design
 [Video Dsiplay](https://github.com/sbelectronics/aim65/tree/master/display)
 
 ## Display
 
-20x1 LED on AIM 6520
-20x2 VFD on USER 6522
+* 20x1 LED on AIM 6520
+* 20x2 VFD on USER 6522
 
 ## Keyboard
 
-AIM Keyboard on AIM  6532
-PS2 Keyboard on USER 6522 using Atmel BIOS
+* AIM Keyboard on AIM  6532
+* PS2 Keyboard on USER 6522 using ATtiny 261 BIOS
+[ATtiny firmware](https://sbc.rictor.org/pckbavr.html)
 
 ## Serial port
 
-AIM Serial on AIM 6522
-ACIA Serial on 6551 UART
+* AIM Serial on AIM 6522
+* ACIA Serial on 6551 UART
 
 ## Cassette interface
 
-Tapuino 
+* Tapuino 
 
 ## Disk Interface
 
-AH5050 with SD2IEC
+* AH5050 with SD2IEC
+
+## SYSTEM 6522 Connector
+<BR>
+
+|  No. | Name | J1 |                  |
+|------|------|----|------------------|
+|  1   | +5v  | A  |                  |
+|  2   | +5v  | A  |                  |
+|  3   | PA0  |    | printer          |
+|  4   | PA1  |    | printer          |
+|  5   | PA2  |    | printer          |
+|  6   | PA3  |    | printer          |
+|  7   | PA4  |    | printer          |
+|  8   | PA5  |    | printer          |
+|  9   | PA6  |    | printer          |
+|  10  | PA7  |    | printer          |
+|  11  | CA1  |    | printer          |
+|  12  | CA2  |    | Audio I/O Control|
+|  13  | PB0  |    | printer          |
+|  14  | PB1  |    | printer          |
+|  15  | PB2  |    | TTY Serial Out   |
+|  16  | PB3  |    | KB/TTY switch    |
+|  17  | PB4  |    | Tape1 Motor      |
+|  18  | PB5  |    | Tape2 Motor      |
+|  19  | PB6  |    | TTY Serial In    |
+|  20  | PB7  |    | Audio I/O Data   |
+|  21  | CB1  |    | printer          |
+|  22  | CB2  |    | printer          |
+|  23  | Gnd  |  I |                  |
+|  24  | Gnd  |  I |                  |
+
+<BR>
+## SYS-I/O USER 6522 Connector
+<BR>
+
+|  No. | Name| J1 |            |             |
+|------|-----|----|------------|-------------|
+|  1   | +5v |    |            |             |
+|  2   | +5v |    |            |             |
+|  3   | PA0 | 14 |            | Keyboard D0 |
+|  4   | PA1 |  4 |            | Keyboard D1 |
+|  5   | PA2 |  3 |            | Keyboard D2 |
+|  6   | PA3 |  2 | AH_ATN     | Keyboard D3 |
+|  7   | PA4 |  5 | AH_CLK_OUT | Keyboard D4 |
+|  8   | PA5 |  6 | AH_DATA_OUT| Keyboard D5 |
+|  9   | PA6 |  7 | AH_CLK_IN  | Keyboard D6 |
+|  10  | PA7 |  8 | AH_DATA_IN | Keyboard D7 |
+|  11  | CA1 | 20 | AH_SRQIN   | Keyboard Rdy|
+|  12  | CA2 | 21 | AH_RESET   | Keyboard Ack|
+|  13  | PB0 |  9 |            |
+|  14  | PB1 | 10 |            |
+|  15  | PB2 | 11 |            |
+|  16  | PB3 | 12 |            |
+|  17  | PB4 | 13 |            |
+|  18  | PB5 | 16 |            |
+|  19  | PB6 | 17 |            |
+|  20  | PB7 | 15 |            |
+|  21  | CB1 | 18 |            |
+|  22  | CB2 | 19 |            |
+|  23  | Gnd |    |            |
+|  24  | Gnd |    |            |
+
+
+<BR>
+## 6845 Video Display table
+<BR>
+
+|                 |0 Custom|1 25x80-60|2 22x72-50|3 16x40-50|4 25x40-60|
+|-----------------|--------|----------|----------|----------|----------|
+| 1 H total chrs  | 108    | 108      | 108      |  54      |  54      |
+| 2 H displayed   |  72    |  80      |  72      |  40      |  40      |
+| 3 H sync pos    |  85    |  89      |  85      |  45      |  44      |
+| 4 HV sync width | $59    | $59      | $59      | $55      | $55      |
+| 5 V total rows  |  31    |  31      |  26      |  26      |  31      |
+| 6 V adjust      |   2    |   2      |   2      |   2      |   2      |
+| 7 V displayed   |  25    |  25      |  22      |  16      |  25      |
+| 8 V sync pos    |  28    |  28      |  24      |  21      |  28      |
+| 9 chars/row as 2|  72    |  80      |  72      |  40      |  40      |
+|10 rows as 7     |  25    |  25      |  22      |  16      |  25      |
+|11 H x V msb     | $07    | $07      | $06      | $02      | $03      |
+|12 H x V lsb     | $D0    | $D0      | $30      | $80      | $E8      |
+
+
+<BR>
+## Ram DISPLAY memory locations
+<BR>
+
+| Address | Name | Size| Purpose               |
+|----|-------|---|-----------------------------|
+|0347|SCRMAX |2  |# CHARS/SCREEN               |
+|0349|ROWMAX |1  |# OF ROWS                    |
+|034A|COLMAX |1  |# OF COLUMNS                 |
+|034B|END    |2  |DISPLAY END ADDRESS          |
+|034D|DLE    |1  |PASS THRU NEXT CHAR FLAG     |
+|034E|INCH   |1  |INSERT MODE FLAG             |
+|034F|EFLG   |1  |ESC SEQUENCE FLAG            |
+|0350|GRAPH  |1  |GRAPHICS MODE FLAG           |
+|0351|INVERS |1  |INVERSE VIDEO FLAG           |
+|0352|DISTARL|1  |DISPLAY START LSB            |
+|0353|DISTARH|1  |DISPLAY START ADDRESS        |
+|0354|YSAV   |1  |LOC TO SAVE Y-POS FOR (Y,Z)  |
+|0355|XSAV   |1  |TEMPORARY X SAVE             |
+|0356|ASAV   |1  |LOCATION TO SAVE COMMAND/DATA|
+|0357|AIM65  |1  |FLAG TO DISTINGUISH AIM 65/S |
+|0358|ROW    |1  |ROW COUNTER                  |
+|0359|COL    |1  |COLUMN COUNTER               |
+|035A|TABLE  |1  |0-3 TO CHOOSE STORED TABLE   |
+|035B|CURP2  |1  |CRT DISPLAY POINTER          |
+|035C|ECHO   |2  |ECHO ADDRESS FOR REFORMATTER |
+|035E|CMAX   |1  |MAX ALLOWED COLUMN FOR CRT   |
+|035F|PRFLG  |1  |COUNTER FOR AIM ON/OFF MSGS  |
+|0360|XXX    |1  |SAVE/RESTORE X REG.          |
+|0361|YYY    |1  |SAVE/RESTORE Y REG.          |
+|0362|XX2    |1  |TEMPORARY SAVE X             |
+|0363|XADDR  |2  |OWN TABLE ADDRESS            |
+|0365|COL2   |1  |CURSOR POS COUNTER           |
+|0366|DBUFF  |80 |BUFFER FOR INSERT/DELETE LINE|
+|03B6|       |0  |                             |

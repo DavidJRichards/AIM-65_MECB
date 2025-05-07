@@ -1,4 +1,5 @@
-.setcpu "65C02"
+;.setcpu "65C02"
+.setcpu "6502"
 .debuginfo
 
 ;HS_PORT := UPCR ;C03C
@@ -8,6 +9,7 @@
 HS_PORT := ACIA_CMD ;C0EA
 HS_ON   := $09 ; 1 ; OR MASK
 HS_OFF  := $F3 ; 0 ; AND MASK
+
 
 .zeropage
 ;                .org ZP_START0
@@ -54,22 +56,24 @@ GO3:    JSR     CRT_INIT
         JMP     COMIN
         NOP
 
+AIM65_  := $0357
 TABLE  := $035A
+CMAX   := $035E
 TABLOW := $0363
 TABHGH := $0364
 
 CRT_TAB: BRK
-        LDA     #4
+        LDA     #4          ; 0-3 SYSTEM TABLES, 4 USER DEFINED
         STA     TABLE
         LDA     #<MYTAB
         STA     TABLOW
         LDA     #>MYTAB
         STA     TABHGH
         JSR     $9906        
-        LDA     #2
-        STA     $357        
-        LDA     #48
-        STA     $35E
+        LDA     #2          ; 2 = AIM PROCESSING LF
+        STA     AIM65_
+        LDA     #48         ; MAXIMUM CHARACTERS PER LINE
+        STA     CMAX
         RTS
         
 MYTAB:  ;     25x80-60Hz  22x72-50Hz 
@@ -95,11 +99,11 @@ CRT_INIT:
         CMP     #$20
         BNE     NOGO    ; EXIT IF NOT FOUND
         LDA     #1
-        STA     $35A
+        STA     TABLE
         LDA     #2
-        STA     $357
+        STA     AIM65_
         LDA     #48
-        STA     $35E
+        STA     CMAX
         JSR     $9906
 NOGO:   RTS
 
@@ -171,17 +175,20 @@ PS2KB_Loop:
 lp0:            cmp     #$0a
                 bne     lp1
                 jsr     linefeed_sent
-                bra     PS2KB_Loop
+                jmp     PS2KB_Loop
+;                bra     PS2KB_Loop
 lp1:
                 cmp     #$0D           ; enter - go to second line
                 bne     lp2
                 jsr     enter_pressed
-                bra     PS2KB_Loop
+;                bra     PS2KB_Loop
+                jmp     PS2KB_Loop
 lp2:
                 cmp     #$c           ; ^L - clear display
                 bne     lp3
                 jsr     esc_pressed
-                bra     PS2KB_Loop
+;                bra     PS2KB_Loop
+                jmp     PS2KB_Loop
 lp3:  
                 cmp     #$3           ; ^C - exit
                 bne     lp4
@@ -189,7 +196,8 @@ lp3:
 lp4:            pha
                 jsr     lcd_print_char
                 pla
-plnxt:          bra     PS2KB_Loop
+;plnxt:          bra     PS2KB_Loop
+plnxt:          jmp     PS2KB_Loop
 
 enter_pressed:
     lda #%11000000 ; 2ND LINE
@@ -333,12 +341,15 @@ ACIA2_Input:
 ; Modifies: flags, A
 ;SERRDKEY:
 ACIA_Input:
-                phx
+                pha
+                txa
+                pha
+;                phx
                 jsr     BUFFER_SIZE
                 beq     @no_keypressed
                 jsr     READ_BUFFER
                 jsr     CHROUT                  ; echo
-                pha
+;                pha
                 jsr     BUFFER_SIZE
                 cmp     #$B0
                 bcs     @mostly_full
@@ -347,11 +358,16 @@ ACIA_Input:
                 sta     HS_PORT
 @mostly_full:
                 pla
-                plx
+                tax
+                pla
+;                plx
                 sec
                 rts
 @no_keypressed:
-                plx
+;                plx
+                pla
+                tax
+                pla
                 clc
                 rts
 
@@ -369,7 +385,8 @@ ACIA_Output:
                 pha
                 sta     ACIA_DATA
                 lda     #$FF
-@txdelay:       dec
+;@txdelay:       dec     a
+@txdelay:       sbc     #1
                 bne     @txdelay
                 pla
 OTINIT:         rts
@@ -416,7 +433,9 @@ BUFFER_SIZE:
 ; Interrupt request handler
 IRQ_HANDLER:
                 pha
-                phx
+                txa
+                pha
+;                phx
                 lda     ACIA_STATUS
                 ; For now, assume the only source of interrupts is incoming data
                 lda     ACIA_DATA
@@ -428,7 +447,9 @@ IRQ_HANDLER:
                 and HS_PORT
                 sta HS_PORT
 @not_full:
-                plx
+;                plx
+                pla
+                tax
                 pla
                 rti
 

@@ -1,3 +1,9 @@
+# djrm
+*~
+*.sim
+*.abs
+wincpl/*/*.pdf
+
 # Prerequisites
 *.d
 
