@@ -105,7 +105,7 @@ These macro definitions are used in the Basic and Monitor sources:
 |  23  | Gnd  |  I |                  |
 |  24  | Gnd  |  I |                  |
 
-<BR>
+
 ## SYS-I/O USER 6522 Connector
 <BR>
 
@@ -137,7 +137,6 @@ These macro definitions are used in the Basic and Monitor sources:
 |  24  | Gnd |    |            |
 
 
-<BR>
 ## 6845 Video Display table
 <BR>
 
@@ -157,7 +156,6 @@ These macro definitions are used in the Basic and Monitor sources:
 |12 H x V lsb     | $D0    | $D0      | $30      | $80      | $E8      |
 
 
-<BR>
 ## Ram DISPLAY memory locations
 <BR>
 
