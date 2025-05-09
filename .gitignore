@@ -2,6 +2,7 @@
 *~
 *.sim
 *.abs
+documents/crtctest-1.1/*
 wincpl/*/*.pdf
 
 # Prerequisites

@@ -56,6 +56,17 @@ These macro definitions are used in the Basic and Monitor sources:
 * 20x1 LED on AIM 6520
 * 20x2 VFD on USER 6522
 
+### Memory
+
+|       |      |      |
+|-------|------|------|
+|VRAM   | 9000 | 97FF |
+|IO     | 9800 | 98FF |
+|ROM    | 9900 | 9FFF |
+|CRTC   | 9800 | 987F |
+|DISPEN | 9880 | 98FF |
+
+
 ## Keyboard
 
 * AIM Keyboard on AIM  6532
@@ -76,6 +87,7 @@ These macro definitions are used in the Basic and Monitor sources:
 * AH5050 with SD2IEC
 
 ## SYSTEM 6522 Connector
+
 <BR>
 
 |  No. | Name | J1 |                  |
@@ -105,8 +117,10 @@ These macro definitions are used in the Basic and Monitor sources:
 |  23  | Gnd  |  I |                  |
 |  24  | Gnd  |  I |                  |
 
+<BR>
 
 ## SYS-I/O USER 6522 Connector
+
 <BR>
 
 |  No. | Name| J1 |            |             |
@@ -136,27 +150,31 @@ These macro definitions are used in the Basic and Monitor sources:
 |  23  | Gnd |    |            |
 |  24  | Gnd |    |            |
 
+<BR>
 
 ## 6845 Video Display table
+
 <BR>
 
 |                 |0 Custom|1 25x80-60|2 22x72-50|3 16x40-50|4 25x40-60|
 |-----------------|--------|----------|----------|----------|----------|
-| 1 H total chrs  | 108    | 108      | 108      |  54      |  54      |
-| 2 H displayed   |  72    |  80      |  72      |  40      |  40      |
-| 3 H sync pos    |  85    |  89      |  85      |  45      |  44      |
-| 4 HV sync width | $59    | $59      | $59      | $55      | $55      |
-| 5 V total rows  |  31    |  31      |  26      |  26      |  31      |
-| 6 V adjust      |   2    |   2      |   2      |   2      |   2      |
-| 7 V displayed   |  25    |  25      |  22      |  16      |  25      |
-| 8 V sync pos    |  28    |  28      |  24      |  21      |  28      |
-| 9 chars/row as 2|  72    |  80      |  72      |  40      |  40      |
-|10 rows as 7     |  25    |  25      |  22      |  16      |  25      |
-|11 H x V msb     | $07    | $07      | $06      | $02      | $03      |
-|12 H x V lsb     | $D0    | $D0      | $30      | $80      | $E8      |
+| R0 H total chrs  | 108    | 108      | 108      |  54      |  54      |
+| R1 H displayed   |  72    |  80      |  72      |  40      |  40      |
+| R2 H sync pos    |  85    |  89      |  85      |  45      |  44      |
+| R3 HV sync width | $59    | $59      | $59      | $55      | $55      |108
+| R4 V total rows  |  31    |  31      |  26      |  26      |  31      |
+| R5 V adjust      |   2    |   2      |   2      |   2      |   2      |
+| R6 V displayed   |  25    |  25      |  22      |  16      |  25      |
+| R7 V sync pos    |  28    |  28      |  24      |  21      |  28      |
+||||||
+| chars/row as R1  |  72    |  80      |  72      |  40      |  40      |
+| rows as R6       |  25    |  25      |  22      |  16      |  25      |
+|    H x V msb     | $07    | $07      | $06      | $02      | $03      |
+|    H x V lsb     | $D0    | $D0      | $30      | $80      | $E8      |
 
 
 ## Ram DISPLAY memory locations
+
 <BR>
 
 | Address | Name | Size| Purpose               |
@@ -190,3 +208,53 @@ These macro definitions are used in the Basic and Monitor sources:
 |0365|COL2   |1  |CURSOR POS COUNTER           |
 |0366|DBUFF  |80 |BUFFER FOR INSERT/DELETE LINE|
 |03B6|       |0  |                             |
+
+<BR>
+
+## Bios utilities
+
+<BR>
+
+### initialization
+
+<BR>
+
+Called manually at address $A000 or from patched monitor code as subroutine at $A808. A series of initailisation staps are performed
+
+|           |    |                      ||
+|-----------|----|----------------------||
+| AIM_SETUP |A89A| function key bindings|
+| PS2KB_INIT|A8B1| SYS/IO 6522 keyboard |
+| SER_INIT  |A874| 6851 serial          |
+| LCD_INIT  |AA44| SYS/IO VFD Display   |
+| CRT_INIT  |A85A| 6845 board init      |
+| CALL_F1   |A915| like press F1        |RESET DISPLAY / AH5050 Menu       |
+| CALL_F2   |A919| like press F2        |RESET SERIAL - DISP_ECHO TO DILINK|
+| CALL_F3   |A92C| like press F3        |setup 6551 for user input UIN     |
+| CALL_F4   |A94F| like press F4!       |
+| PS2KB_Loop|A8D0| Test KB/VFD          |
+| DISP_ECHO |A95F| Output to 6851 RS232 |
+| OUTDIS    |EF05| Output to AIM display|
+
+<BR>
+
+### I/O locations
+
+<BR>
+
+|      |    |                             |
+|------|----|-----------------------------|
+|DILINK|A406|                             |
+|UIN   |0108|                             |
+|INFLG |A412|SP,'U', etc                  |
+|F1    |010C|                             |
+|F2    |010F|                             |
+|F3    |    |                             |
+|TABLE |035A|parameter table, 1=50Hz,72x22|
+|AIM65_|0357|2=enable AIM65 functions     |
+|CMAX  |035E|72, max characters per line  |
+
+
+
+
+

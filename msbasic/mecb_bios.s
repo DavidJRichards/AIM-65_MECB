@@ -72,7 +72,7 @@ CRT_TAB: BRK
         JSR     $9906        
         LDA     #2          ; 2 = AIM PROCESSING LF
         STA     AIM65_
-        LDA     #48         ; MAXIMUM CHARACTERS PER LINE
+        LDA     #72         ; MAXIMUM CHARACTERS PER LINE
         STA     CMAX
         RTS
         
@@ -237,7 +237,7 @@ esc_pressed:
 ;to change the DILINK address pointed for DILINK from $EF05 to $040B
 ;**********************************************************************************
 
-CALL_F1:        JSR $9964
+CALL_F1:        JSR $9964               ; RESET DISPLAY, LIKELY TO BE CLOBBERED BY AH5050
                 RTS
 
 CALL_F2:        LDA #<DISP_ECHO
