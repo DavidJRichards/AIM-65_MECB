@@ -223,18 +223,18 @@ Called manually at address $A000 or from patched monitor code as subroutine at $
 
 |           |    |                      ||
 |-----------|----|----------------------||
-| AIM_SETUP |A89A| function key bindings|
-| PS2KB_INIT|A8B1| SYS/IO 6522 keyboard |
-| SER_INIT  |A874| 6851 serial          |
-| LCD_INIT  |AA44| SYS/IO VFD Display   |
-| CRT_INIT  |A85A| 6845 board init      |
+| AIM_SETUP |A89A| function key bindings||
+| PS2KB_INIT|A8B1| SYS/IO 6522 keyboard ||
+| SER_INIT  |A874| 6851 serial          ||
+| LCD_INIT  |AA44| SYS/IO VFD Display   ||
+| CRT_INIT  |A85A| 6845 board init      ||
 | CALL_F1   |A915| like press F1        |RESET DISPLAY / AH5050 Menu       |
 | CALL_F2   |A919| like press F2        |RESET SERIAL - DISP_ECHO TO DILINK|
 | CALL_F3   |A92C| like press F3        |setup 6551 for user input UIN     |
-| CALL_F4   |A94F| like press F4!       |
-| PS2KB_Loop|A8D0| Test KB/VFD          |
-| DISP_ECHO |A95F| Output to 6851 RS232 |
-| OUTDIS    |EF05| Output to AIM display|
+| CALL_F4   |A94F| like press F4!       ||
+| PS2KB_Loop|A8D0| Test KB/VFD          ||
+| DISP_ECHO |A95F| Output to 6851 RS232 ||
+| OUTDIS    |EF05| Output to AIM display||
 
 <BR>
 
