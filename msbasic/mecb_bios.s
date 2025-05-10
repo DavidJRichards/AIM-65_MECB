@@ -10,6 +10,12 @@ HS_PORT := ACIA_CMD ;C0EA
 HS_ON   := $09 ; 1 ; OR MASK
 HS_OFF  := $F3 ; 0 ; AND MASK
 
+AIM65_  := $0357
+TABLE  := $035A
+CMAX   := $035E
+TABLOW := $0363
+TABHGH := $0364
+
 
 .zeropage
 ;                .org ZP_START0
@@ -39,7 +45,8 @@ BIOS_INIT:
         nop
         jsr     LCD_INIT
         nop
-        jsr     CRT_INIT
+;        jsr     CRT_INIT
+        jsr     CRT_TAB
 ;    nop
 ;    nop
 ;    nop
@@ -51,18 +58,12 @@ BIOS_INIT:
         jsr     PS2KB_Loop
         brk
         
-GO3:    JSR     CRT_INIT
+GO3:    JSR     CRT_TAB
         NOP
         JMP     COMIN
         NOP
 
-AIM65_  := $0357
-TABLE  := $035A
-CMAX   := $035E
-TABLOW := $0363
-TABHGH := $0364
-
-CRT_TAB: BRK
+CRT_TAB: 
         LDA     #4          ; 0-3 SYSTEM TABLES, 4 USER DEFINED
         STA     TABLE
         LDA     #<MYTAB
@@ -74,25 +75,25 @@ CRT_TAB: BRK
         STA     AIM65_
         LDA     #72         ; MAXIMUM CHARACTERS PER LINE
         STA     CMAX
+        JSR     $9906
         RTS
         
 MYTAB:  ;     25x80-60Hz  22x72-50Hz 
         .BYTE   108     ; 108 ; 1, Horizontal total (96?)
-        .BYTE    72;80     ;  72 ; 2, Horizontal displayed
-        .BYTE    85;89     ;  85 ; 3, Horizontal sync position
+        .BYTE    72     ;  72 ; 2, Horizontal displayed
+        .BYTE    85     ;  85 ; 3, Horizontal sync position
         .BYTE   $59     ; $59 ; 4, Horizontal and vertical Sync widths
         
-        .BYTE    31     ;  26 ; 5, Vertical total rows
+        .BYTE    26     ;  26 ; 5, Vertical total rows
         .BYTE     2     ;   2 ; 6, Vertical total adjust  
-        .BYTE    25     ;  22 ; 7, Vertical displayed
-        .BYTE    28     ;  24 ; 8, Verical sync position 
+        .BYTE    22     ;  22 ; 7, Vertical displayed
+        .BYTE    25     ;  24 ; 8, Verical sync position 
         
-        .BYTE    72;80     ;  72 ; 9, same as 2
-        .BYTE    25     ;  22 ;10, same as 7  
-        .BYTE   $07     ; $06 ;11, Total characters msb
-        .BYTE   $D0     ; $30 ;12, Total characters lsb
+        .BYTE    72     ;  72 ; 9, same as 2
+        .BYTE    22     ;  22 ;10, same as 7  
+        .BYTE   $06     ; $06 ;11, Total characters msb
+        .BYTE   $30     ; $30 ;12, Total characters lsb
 
-                 
 
 CRT_INIT:
         LDA     $9900   ; TEST CRT ROM JSR INSTRUCTION
@@ -102,7 +103,7 @@ CRT_INIT:
         STA     TABLE
         LDA     #2
         STA     AIM65_
-        LDA     #48
+        LDA     #72
         STA     CMAX
         JSR     $9906
 NOGO:   RTS
@@ -341,7 +342,6 @@ ACIA2_Input:
 ; Modifies: flags, A
 ;SERRDKEY:
 ACIA_Input:
-                pha
                 txa
                 pha
 ;                phx
@@ -349,7 +349,7 @@ ACIA_Input:
                 beq     @no_keypressed
                 jsr     READ_BUFFER
                 jsr     CHROUT                  ; echo
-;                pha
+                tay
                 jsr     BUFFER_SIZE
                 cmp     #$B0
                 bcs     @mostly_full
@@ -358,16 +358,15 @@ ACIA_Input:
                 sta     HS_PORT
 @mostly_full:
                 pla
-                tax
-                pla
+		tax
 ;                plx
+		tya
                 sec
                 rts
 @no_keypressed:
 ;                plx
                 pla
                 tax
-                pla
                 clc
                 rts
 

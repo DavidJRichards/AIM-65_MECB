@@ -9402,6 +9402,12 @@ Current file: msbasic.s
 000006r 3               HS_ON   := $09 ; 1 ; OR MASK
 000006r 3               HS_OFF  := $F3 ; 0 ; AND MASK
 000006r 3               
+000006r 3               AIM65_  := $0357
+000006r 3               TABLE  := $035A
+000006r 3               CMAX   := $035E
+000006r 3               TABLOW := $0363
+000006r 3               TABHGH := $0364
+000006r 3               
 000006r 3               
 000006r 3               .zeropage
 0000BF  3               ;                .org ZP_START0
@@ -9433,7 +9439,8 @@ Current file: msbasic.s
 000013r 3  EA                   nop
 000014r 3  20 rr rr             jsr     LCD_INIT
 000017r 3  EA                   nop
-000018r 3  20 rr rr             jsr     CRT_INIT
+000018r 3               ;        jsr     CRT_INIT
+000018r 3  20 rr rr             jsr     CRT_TAB
 00001Br 3               ;    nop
 00001Br 3               ;    nop
 00001Br 3               ;    nop
@@ -9445,419 +9452,411 @@ Current file: msbasic.s
 000024r 3  20 rr rr             jsr     PS2KB_Loop
 000027r 3  00                   brk
 000028r 3               
-000028r 3  20 rr rr     GO3:    JSR     CRT_INIT
+000028r 3  20 rr rr     GO3:    JSR     CRT_TAB
 00002Br 3  EA                   NOP
 00002Cr 3  4C A1 E1             JMP     COMIN
 00002Fr 3  EA                   NOP
 000030r 3               
-000030r 3               AIM65_  := $0357
-000030r 3               TABLE  := $035A
-000030r 3               CMAX   := $035E
-000030r 3               TABLOW := $0363
-000030r 3               TABHGH := $0364
-000030r 3               
-000030r 3  00           CRT_TAB: BRK
-000031r 3  A9 04                LDA     #4          ; 0-3 SYSTEM TABLES, 4 USER DEFINED
-000033r 3  8D 5A 03             STA     TABLE
-000036r 3  A9 rr                LDA     #<MYTAB
-000038r 3  8D 63 03             STA     TABLOW
-00003Br 3  A9 rr                LDA     #>MYTAB
-00003Dr 3  8D 64 03             STA     TABHGH
-000040r 3  20 06 99             JSR     $9906
-000043r 3  A9 02                LDA     #2          ; 2 = AIM PROCESSING LF
-000045r 3  8D 57 03             STA     AIM65_
-000048r 3  A9 30                LDA     #48         ; MAXIMUM CHARACTERS PER LINE
-00004Ar 3  8D 5E 03             STA     CMAX
-00004Dr 3  60                   RTS
-00004Er 3               
-00004Er 3               MYTAB:  ;     25x80-60Hz  22x72-50Hz
-00004Er 3  6C                   .BYTE   108     ; 108 ; 1, Horizontal total (96?)
-00004Fr 3  48                   .BYTE    72;80     ;  72 ; 2, Horizontal displayed
-000050r 3  55                   .BYTE    85;89     ;  85 ; 3, Horizontal sync position
-000051r 3  59                   .BYTE   $59     ; $59 ; 4, Horizontal and vertical Sync widths
-000052r 3               
-000052r 3  1F                   .BYTE    31     ;  26 ; 5, Vertical total rows
-000053r 3  02                   .BYTE     2     ;   2 ; 6, Vertical total adjust
-000054r 3  19                   .BYTE    25     ;  22 ; 7, Vertical displayed
-000055r 3  1C                   .BYTE    28     ;  24 ; 8, Verical sync position
-000056r 3               
-000056r 3  48                   .BYTE    72;80     ;  72 ; 9, same as 2
-000057r 3  19                   .BYTE    25     ;  22 ;10, same as 7
-000058r 3  07                   .BYTE   $07     ; $06 ;11, Total characters msb
-000059r 3  D0                   .BYTE   $D0     ; $30 ;12, Total characters lsb
-00005Ar 3               
-00005Ar 3               
-00005Ar 3               
-00005Ar 3               CRT_INIT:
-00005Ar 3  AD 00 99             LDA     $9900   ; TEST CRT ROM JSR INSTRUCTION
-00005Dr 3  C9 20                CMP     #$20
-00005Fr 3  D0 12                BNE     NOGO    ; EXIT IF NOT FOUND
-000061r 3  A9 01                LDA     #1
-000063r 3  8D 5A 03             STA     TABLE
-000066r 3  A9 02                LDA     #2
-000068r 3  8D 57 03             STA     AIM65_
-00006Br 3  A9 30                LDA     #48
-00006Dr 3  8D 5E 03             STA     CMAX
-000070r 3  20 06 99             JSR     $9906
-000073r 3  60           NOGO:   RTS
-000074r 3               
-000074r 3               SER_INIT:
-000074r 3  D8                   CLD                     ; Clear decimal arithmetic mode.
-000075r 3  20 rr rr             JSR     SER_INIT_BUFFER
-000078r 3  A9 rr                lda     #<IRQ_HANDLER
-00007Ar 3  8D 00 A4             sta     IRQV4
-00007Dr 3  A9 rr                lda     #>IRQ_HANDLER
-00007Fr 3  8D 01 A4             sta     IRQV4+1
-000082r 3               
-000082r 3  A9 rr                lda     #<OUTTST
-000084r 3  8D 0A 01             sta     UOUT
-000087r 3  A9 rr                lda     #>OUTTST
-000089r 3  8D 0B 01             sta     UOUT+1
-00008Cr 3               
-00008Cr 3  A9 1E                lda     #$1E            ; 9600/8/1
-00008Er 3  8D D9 A4             sta     ACIA_STATUS     ; acia reset
-000091r 3  8D DB A4             STA     ACIA_CTRL
-000094r 3  A0 09                LDY     #$09            ; No parity, no echo, rx interrupts.
-000096r 3  8C DA A4             STY     ACIA_CMD
-000099r 3               
-000099r 3               ;        lda     ACIA_STATUS
-000099r 3               ;        lda     ACIA_DATA
-000099r 3               
-000099r 3  60                   rts
-00009Ar 3               
-00009Ar 3               
-00009Ar 3               
-00009Ar 3               AIM_SETUP:
-00009Ar 3  A2 00                        LDX #0                  ; SETUP FUNCTION KEYS, copy jump instructions TO SWITCH OUTPUT ON AND OFF
-00009Cr 3  BD rr rr     fnlp:           LDA fntab,X
-00009Fr 3  9D 0C 01                     STA KEYF1,X
-0000A2r 3  E8                           INX
-0000A3r 3  E0 09                        CPX #9                  ; THREE ENTRIES IN JUMP TABLE
-0000A5r 3  90 F5                        BCC fnlp
-0000A7r 3  60                           rts
-0000A8r 3  4C rr rr     fntab:          jmp     CALL_F1         ; SIX BYTES DATA FOR COPY ABOVE
-0000ABr 3  4C rr rr                     jmp     CALL_F2
-0000AEr 3  4C rr rr                     jmp     CALL_F3
-0000B1r 3               
-0000B1r 3               
-0000B1r 3               PS2KB_INIT:
-0000B1r 3  A9 00                       lda      #0              ; Set all pins on port A to INPUT
-0000B3r 3  8D B2 A4                    sta      DDRA
-0000B6r 3  A9 C8                       lda      #$C8            ; CA1/2 KEYBOARD HANDSHAKE & CB1 LED OFF
-0000B8r 3  8D BC A4                    sta      UPCR            ; Via1PCR
-0000BBr 3  AD B1 A4                    lda	UDRAH           ; Via1PRA
-0000BEr 3  60                          rts                      ; done
-0000BFr 3               
-0000BFr 3               PS2KB_Scan:
-0000BFr 3  AD BD A4                     lda     UIFR            ; LOAD STATUS REGISTER
-0000C2r 3  4A                           lsr     A
-0000C3r 3  4A                           lsr     A
-0000C4r 3  90 03                        BCC     kcirtn          ; RETURN IF NOTHING
-0000C6r 3  AD B1 A4                     LDA     UDRAH           ; LOAD DATA BYTE
-0000C9r 3  60           kcirtn:         RTS                     ; RETURN TO CALLER
-0000CAr 3               
-0000CAr 3               PS2KB_Input:
-0000CAr 3  20 rr rr                     JSR     PS2KB_Scan
-0000CDr 3  90 FB                        BCC     PS2KB_Input
-0000CFr 3  60                           RTS
-0000D0r 3               
-0000D0r 3               PS2KB_Loop:
-0000D0r 3               ;                jsr     ACIA_Input
-0000D0r 3  20 rr rr                     jsr     PS2KB_Scan
-0000D3r 3  90 FB                        bcc     PS2KB_Loop
-0000D5r 3               ;                JSR     ACIA_Output
-0000D5r 3  C9 0A        lp0:            cmp     #$0a
-0000D7r 3  D0 06                        bne     lp1
-0000D9r 3  20 rr rr                     jsr     linefeed_sent
-0000DCr 3  4C rr rr                     jmp     PS2KB_Loop
-0000DFr 3               ;                bra     PS2KB_Loop
-0000DFr 3               lp1:
-0000DFr 3  C9 0D                        cmp     #$0D           ; enter - go to second line
-0000E1r 3  D0 06                        bne     lp2
-0000E3r 3  20 rr rr                     jsr     enter_pressed
-0000E6r 3               ;                bra     PS2KB_Loop
-0000E6r 3  4C rr rr                     jmp     PS2KB_Loop
-0000E9r 3               lp2:
-0000E9r 3  C9 0C                        cmp     #$c           ; ^L - clear display
-0000EBr 3  D0 06                        bne     lp3
-0000EDr 3  20 rr rr                     jsr     esc_pressed
-0000F0r 3               ;                bra     PS2KB_Loop
-0000F0r 3  4C rr rr                     jmp     PS2KB_Loop
-0000F3r 3               lp3:
-0000F3r 3  C9 03                        cmp     #$3           ; ^C - exit
-0000F5r 3  D0 01                        bne     lp4
-0000F7r 3  60                           rts
-0000F8r 3  48           lp4:            pha
-0000F9r 3  20 rr rr                     jsr     lcd_print_char
-0000FCr 3  68                           pla
-0000FDr 3               ;plnxt:          bra     PS2KB_Loop
-0000FDr 3  4C rr rr     plnxt:          jmp     PS2KB_Loop
-000100r 3               
-000100r 3               enter_pressed:
-000100r 3  A9 C0            lda #%11000000 ; 2ND LINE
-000102r 3  20 rr rr         jsr lcd_instruction
-000105r 3  18               clc
-000106r 3  60               rts
-000107r 3               
-000107r 3               linefeed_sent:
-000107r 3  A9 80            lda #%10000000 ; 1ST LINE
-000109r 3  20 rr rr         jsr lcd_instruction
-00010Cr 3  18               clc
-00010Dr 3  60               rts
-00010Er 3               
-00010Er 3               esc_pressed:
-00010Er 3  A9 01          lda #%00000001 ; Clear display
-000110r 3  20 rr rr       jsr lcd_instruction
-000113r 3  18             clc
-000114r 3  60             rts
-000115r 3               
-000115r 3               
-000115r 3               
-000115r 3               ;********************************************************************************
-000115r 3               ;This is the SEND_CHAR subroutine to serialize a character on Accu.
-000115r 3               ;so ROUTES the character to serialize function before display it.
-000115r 3               ;********************************************************************************
-000115r 3               
-000115r 3               ;SEND_CHAR:      PHA                     ; Character to serialize come on Accu.
-000115r 3               ;                LDA #$10
-000115r 3               ;TRY_AGAIN:      BIT $6001               ; check bit 4 ACIA1 Status Reg (ACIA1_SR)
-000115r 3               ;                BEQ TRY_AGAIN           ; wait until ACIA1 Data Reg Empty (BEQ TRY_AGAIN)
-000115r 3               ;                PLA                     ; restore the character from stack
-000115r 3               ;                STA $6000               ; put the char. on ACIA1 Data Reg to serialize it (ACIA1_DR)
-000115r 3               ;END_SEND:       RTS                     ; end of SEND_CHAR function subroutine.
-000115r 3               
-000115r 3               ;*********************************************************************************
-000115r 3               ;Setting <M> = 010C 4C 00 04,  the F1 AIM-65 Function key call  subr
-000115r 3               ;to change the DILINK address pointed for DILINK from $EF05 to $040B
-000115r 3               ;**********************************************************************************
-000115r 3               
-000115r 3  20 64 99     CALL_F1:        JSR $9964
-000118r 3  60                           RTS
-000119r 3               
-000119r 3  A9 rr        CALL_F2:        LDA #<DISP_ECHO
-00011Br 3  8D 06 A4                     STA DILINK               ; DILINK LOW BYTE
-00011Er 3  A9 rr                        LDA #>DISP_ECHO
-000120r 3  8D 07 A4                     STA DILINK+1             ; DILINK HIGH BYTE
-000123r 3  A9 09                        lda     #HS_ON                    ; set 1
-000125r 3  0D DA A4                     ora     HS_PORT
-000128r 3  8D DA A4                     sta     HS_PORT
-00012Br 3  60                           RTS
-00012Cr 3               
-00012Cr 3               CALL_F3:                                ; SETUP USER DFINED INPUT DEVICE 'U'
-00012Cr 3  A9 rr                        LDA #<ACIA2_Input
-00012Er 3  8D 08 01                     STA UIN
-000131r 3  A9 rr                        LDA #>ACIA2_Input
-000133r 3  8D 09 01                     STA UIN+1
-000136r 3               
-000136r 3  A9 55                        lda #$55
-000138r 3  8D 12 A4                     sta INFLG
-00013Br 3               
-00013Br 3  A9 ED                        LDA #<WSMON ;$ED                ; CHANGE NIM VECTOR TO WARM START, ALSO FORCES RESET TO COLD START
-00013Dr 3  8D 02 A4                     STA NMIV2
-000140r 3  A9 E0                        LDA #>WSMON ;$E0
-000142r 3  8D 03 A4                     STA NMIV2+1
-000145r 3               
-000145r 3  A9 09                        lda     #HS_ON                    ; set 1
-000147r 3  0D DA A4                     ora     HS_PORT
-00014Ar 3  8D DA A4                     sta     HS_PORT
-00014Dr 3               
-00014Dr 3               ;                lda     ACIA_DATA       ; CLEAR INTERRUPT FLAG
-00014Dr 3  58                           cli                     ; ENABLE INTERRUPTS
-00014Er 3  60                           rts
+000030r 3               CRT_TAB:
+000030r 3  A9 04                LDA     #4          ; 0-3 SYSTEM TABLES, 4 USER DEFINED
+000032r 3  8D 5A 03             STA     TABLE
+000035r 3  A9 rr                LDA     #<MYTAB
+000037r 3  8D 63 03             STA     TABLOW
+00003Ar 3  A9 rr                LDA     #>MYTAB
+00003Cr 3  8D 64 03             STA     TABHGH
+00003Fr 3  20 06 99             JSR     $9906
+000042r 3  A9 02                LDA     #2          ; 2 = AIM PROCESSING LF
+000044r 3  8D 57 03             STA     AIM65_
+000047r 3  A9 48                LDA     #72         ; MAXIMUM CHARACTERS PER LINE
+000049r 3  8D 5E 03             STA     CMAX
+00004Cr 3  20 06 99             JSR     $9906
+00004Fr 3  60                   RTS
+000050r 3               
+000050r 3               MYTAB:  ;     25x80-60Hz  22x72-50Hz
+000050r 3  6C                   .BYTE   108     ; 108 ; 1, Horizontal total (96?)
+000051r 3  48                   .BYTE    72     ;  72 ; 2, Horizontal displayed
+000052r 3  55                   .BYTE    85     ;  85 ; 3, Horizontal sync position
+000053r 3  59                   .BYTE   $59     ; $59 ; 4, Horizontal and vertical Sync widths
+000054r 3               
+000054r 3  1A                   .BYTE    26     ;  26 ; 5, Vertical total rows
+000055r 3  02                   .BYTE     2     ;   2 ; 6, Vertical total adjust
+000056r 3  16                   .BYTE    22     ;  22 ; 7, Vertical displayed
+000057r 3  19                   .BYTE    25     ;  24 ; 8, Verical sync position
+000058r 3               
+000058r 3  48                   .BYTE    72     ;  72 ; 9, same as 2
+000059r 3  16                   .BYTE    22     ;  22 ;10, same as 7
+00005Ar 3  06                   .BYTE   $06     ; $06 ;11, Total characters msb
+00005Br 3  30                   .BYTE   $30     ; $30 ;12, Total characters lsb
+00005Cr 3               
+00005Cr 3               
+00005Cr 3               CRT_INIT:
+00005Cr 3  AD 00 99             LDA     $9900   ; TEST CRT ROM JSR INSTRUCTION
+00005Fr 3  C9 20                CMP     #$20
+000061r 3  D0 12                BNE     NOGO    ; EXIT IF NOT FOUND
+000063r 3  A9 01                LDA     #1
+000065r 3  8D 5A 03             STA     TABLE
+000068r 3  A9 02                LDA     #2
+00006Ar 3  8D 57 03             STA     AIM65_
+00006Dr 3  A9 48                LDA     #72
+00006Fr 3  8D 5E 03             STA     CMAX
+000072r 3  20 06 99             JSR     $9906
+000075r 3  60           NOGO:   RTS
+000076r 3               
+000076r 3               SER_INIT:
+000076r 3  D8                   CLD                     ; Clear decimal arithmetic mode.
+000077r 3  20 rr rr             JSR     SER_INIT_BUFFER
+00007Ar 3  A9 rr                lda     #<IRQ_HANDLER
+00007Cr 3  8D 00 A4             sta     IRQV4
+00007Fr 3  A9 rr                lda     #>IRQ_HANDLER
+000081r 3  8D 01 A4             sta     IRQV4+1
+000084r 3               
+000084r 3  A9 rr                lda     #<OUTTST
+000086r 3  8D 0A 01             sta     UOUT
+000089r 3  A9 rr                lda     #>OUTTST
+00008Br 3  8D 0B 01             sta     UOUT+1
+00008Er 3               
+00008Er 3  A9 1E                lda     #$1E            ; 9600/8/1
+000090r 3  8D D9 A4             sta     ACIA_STATUS     ; acia reset
+000093r 3  8D DB A4             STA     ACIA_CTRL
+000096r 3  A0 09                LDY     #$09            ; No parity, no echo, rx interrupts.
+000098r 3  8C DA A4             STY     ACIA_CMD
+00009Br 3               
+00009Br 3               ;        lda     ACIA_STATUS
+00009Br 3               ;        lda     ACIA_DATA
+00009Br 3               
+00009Br 3  60                   rts
+00009Cr 3               
+00009Cr 3               
+00009Cr 3               
+00009Cr 3               AIM_SETUP:
+00009Cr 3  A2 00                        LDX #0                  ; SETUP FUNCTION KEYS, copy jump instructions TO SWITCH OUTPUT ON AND OFF
+00009Er 3  BD rr rr     fnlp:           LDA fntab,X
+0000A1r 3  9D 0C 01                     STA KEYF1,X
+0000A4r 3  E8                           INX
+0000A5r 3  E0 09                        CPX #9                  ; THREE ENTRIES IN JUMP TABLE
+0000A7r 3  90 F5                        BCC fnlp
+0000A9r 3  60                           rts
+0000AAr 3  4C rr rr     fntab:          jmp     CALL_F1         ; SIX BYTES DATA FOR COPY ABOVE
+0000ADr 3  4C rr rr                     jmp     CALL_F2
+0000B0r 3  4C rr rr                     jmp     CALL_F3
+0000B3r 3               
+0000B3r 3               
+0000B3r 3               PS2KB_INIT:
+0000B3r 3  A9 00                       lda      #0              ; Set all pins on port A to INPUT
+0000B5r 3  8D B2 A4                    sta      DDRA
+0000B8r 3  A9 C8                       lda      #$C8            ; CA1/2 KEYBOARD HANDSHAKE & CB1 LED OFF
+0000BAr 3  8D BC A4                    sta      UPCR            ; Via1PCR
+0000BDr 3  AD B1 A4                    lda	UDRAH           ; Via1PRA
+0000C0r 3  60                          rts                      ; done
+0000C1r 3               
+0000C1r 3               PS2KB_Scan:
+0000C1r 3  AD BD A4                     lda     UIFR            ; LOAD STATUS REGISTER
+0000C4r 3  4A                           lsr     A
+0000C5r 3  4A                           lsr     A
+0000C6r 3  90 03                        BCC     kcirtn          ; RETURN IF NOTHING
+0000C8r 3  AD B1 A4                     LDA     UDRAH           ; LOAD DATA BYTE
+0000CBr 3  60           kcirtn:         RTS                     ; RETURN TO CALLER
+0000CCr 3               
+0000CCr 3               PS2KB_Input:
+0000CCr 3  20 rr rr                     JSR     PS2KB_Scan
+0000CFr 3  90 FB                        BCC     PS2KB_Input
+0000D1r 3  60                           RTS
+0000D2r 3               
+0000D2r 3               PS2KB_Loop:
+0000D2r 3               ;                jsr     ACIA_Input
+0000D2r 3  20 rr rr                     jsr     PS2KB_Scan
+0000D5r 3  90 FB                        bcc     PS2KB_Loop
+0000D7r 3               ;                JSR     ACIA_Output
+0000D7r 3  C9 0A        lp0:            cmp     #$0a
+0000D9r 3  D0 06                        bne     lp1
+0000DBr 3  20 rr rr                     jsr     linefeed_sent
+0000DEr 3  4C rr rr                     jmp     PS2KB_Loop
+0000E1r 3               ;                bra     PS2KB_Loop
+0000E1r 3               lp1:
+0000E1r 3  C9 0D                        cmp     #$0D           ; enter - go to second line
+0000E3r 3  D0 06                        bne     lp2
+0000E5r 3  20 rr rr                     jsr     enter_pressed
+0000E8r 3               ;                bra     PS2KB_Loop
+0000E8r 3  4C rr rr                     jmp     PS2KB_Loop
+0000EBr 3               lp2:
+0000EBr 3  C9 0C                        cmp     #$c           ; ^L - clear display
+0000EDr 3  D0 06                        bne     lp3
+0000EFr 3  20 rr rr                     jsr     esc_pressed
+0000F2r 3               ;                bra     PS2KB_Loop
+0000F2r 3  4C rr rr                     jmp     PS2KB_Loop
+0000F5r 3               lp3:
+0000F5r 3  C9 03                        cmp     #$3           ; ^C - exit
+0000F7r 3  D0 01                        bne     lp4
+0000F9r 3  60                           rts
+0000FAr 3  48           lp4:            pha
+0000FBr 3  20 rr rr                     jsr     lcd_print_char
+0000FEr 3  68                           pla
+0000FFr 3               ;plnxt:          bra     PS2KB_Loop
+0000FFr 3  4C rr rr     plnxt:          jmp     PS2KB_Loop
+000102r 3               
+000102r 3               enter_pressed:
+000102r 3  A9 C0            lda #%11000000 ; 2ND LINE
+000104r 3  20 rr rr         jsr lcd_instruction
+000107r 3  18               clc
+000108r 3  60               rts
+000109r 3               
+000109r 3               linefeed_sent:
+000109r 3  A9 80            lda #%10000000 ; 1ST LINE
+00010Br 3  20 rr rr         jsr lcd_instruction
+00010Er 3  18               clc
+00010Fr 3  60               rts
+000110r 3               
+000110r 3               esc_pressed:
+000110r 3  A9 01          lda #%00000001 ; Clear display
+000112r 3  20 rr rr       jsr lcd_instruction
+000115r 3  18             clc
+000116r 3  60             rts
+000117r 3               
+000117r 3               
+000117r 3               
+000117r 3               ;********************************************************************************
+000117r 3               ;This is the SEND_CHAR subroutine to serialize a character on Accu.
+000117r 3               ;so ROUTES the character to serialize function before display it.
+000117r 3               ;********************************************************************************
+000117r 3               
+000117r 3               ;SEND_CHAR:      PHA                     ; Character to serialize come on Accu.
+000117r 3               ;                LDA #$10
+000117r 3               ;TRY_AGAIN:      BIT $6001               ; check bit 4 ACIA1 Status Reg (ACIA1_SR)
+000117r 3               ;                BEQ TRY_AGAIN           ; wait until ACIA1 Data Reg Empty (BEQ TRY_AGAIN)
+000117r 3               ;                PLA                     ; restore the character from stack
+000117r 3               ;                STA $6000               ; put the char. on ACIA1 Data Reg to serialize it (ACIA1_DR)
+000117r 3               ;END_SEND:       RTS                     ; end of SEND_CHAR function subroutine.
+000117r 3               
+000117r 3               ;*********************************************************************************
+000117r 3               ;Setting <M> = 010C 4C 00 04,  the F1 AIM-65 Function key call  subr
+000117r 3               ;to change the DILINK address pointed for DILINK from $EF05 to $040B
+000117r 3               ;**********************************************************************************
+000117r 3               
+000117r 3  20 64 99     CALL_F1:        JSR $9964               ; RESET DISPLAY, LIKELY TO BE CLOBBERED BY AH5050
+00011Ar 3  60                           RTS
+00011Br 3               
+00011Br 3  A9 rr        CALL_F2:        LDA #<DISP_ECHO
+00011Dr 3  8D 06 A4                     STA DILINK               ; DILINK LOW BYTE
+000120r 3  A9 rr                        LDA #>DISP_ECHO
+000122r 3  8D 07 A4                     STA DILINK+1             ; DILINK HIGH BYTE
+000125r 3  A9 09                        lda     #HS_ON                    ; set 1
+000127r 3  0D DA A4                     ora     HS_PORT
+00012Ar 3  8D DA A4                     sta     HS_PORT
+00012Dr 3  60                           RTS
+00012Er 3               
+00012Er 3               CALL_F3:                                ; SETUP USER DFINED INPUT DEVICE 'U'
+00012Er 3  A9 rr                        LDA #<ACIA2_Input
+000130r 3  8D 08 01                     STA UIN
+000133r 3  A9 rr                        LDA #>ACIA2_Input
+000135r 3  8D 09 01                     STA UIN+1
+000138r 3               
+000138r 3  A9 55                        lda #$55
+00013Ar 3  8D 12 A4                     sta INFLG
+00013Dr 3               
+00013Dr 3  A9 ED                        LDA #<WSMON ;$ED                ; CHANGE NIM VECTOR TO WARM START, ALSO FORCES RESET TO COLD START
+00013Fr 3  8D 02 A4                     STA NMIV2
+000142r 3  A9 E0                        LDA #>WSMON ;$E0
+000144r 3  8D 03 A4                     STA NMIV2+1
+000147r 3               
+000147r 3  A9 09                        lda     #HS_ON                    ; set 1
+000149r 3  0D DA A4                     ora     HS_PORT
+00014Cr 3  8D DA A4                     sta     HS_PORT
 00014Fr 3               
-00014Fr 3               
-00014Fr 3               ;******************************************************************************
-00014Fr 3               ;Setting <M> = 010C 4C 00 04,  the F2 AIM-65 Function key call  subr
-00014Fr 3               ;to return the address pointed for DILINK to $EF05
-00014Fr 3               ;*******************************************************************************
-00014Fr 3               
-00014Fr 3  A9 05        CALL_F4:        LDA #<OUTDIS    ; RESTORE NORMAL DISPLAY
-000151r 3  8D 06 A4                     STA DILINK
-000154r 3  A9 EF                        LDA #>OUTDIS
-000156r 3  8D 07 A4                     STA DILINK+1
-000159r 3               ;                lda     #HS_OFF                    ; set 0
-000159r 3               ;                and     HS_PORT
-000159r 3               ;                sta     HS_PORT
-000159r 3  A9 20                        LDA #$20        ; RESTORE KEYBOARD INPUT
-00015Br 3  8D 12 A4                     STA INFLG
-00015Er 3  60                           RTS
-00015Fr 3               
-00015Fr 3               ;************************************************************************
-00015Fr 3               ;The Display routine on AIM-65,  JUMP to the new DILINK addr.
-00015Fr 3               ;so ROUTES the character to serial procedure before display it.
-00015Fr 3               ;************************************************************************
-00015Fr 3  48           DISP_ECHO:      PHA                     ; Save Character to Stack
-000160r 3               
-000160r 3  68           PREP_SEND:      PLA                     ; Restore Character from Stack
-000161r 3  48                           PHA                     ; and save it
-000162r 3  29 7F                        and     #$7f
-000164r 3  20 rr rr                     JSR ACIA_Output         ; Send the character to serial ACIA1 (Subroutine SEND_CHAR)
-000167r 3  68                           PLA                     ; Restore Character from stack
-000168r 3  48                           PHA                     ; and save it again
-000169r 3  C9 0D                        CMP #$0D                ; Was a <CR> ?
-00016Br 3  F0 07                        BEQ ADD_LF              ; Then add Line Feed
-00016Dr 3  C9 8D                        CMP #$8D                ; Was a <CR> with MSB = 1?
-00016Fr 3  F0 03                        BEQ ADD_LF              ; Then add Line Feed
-000171r 3  4C rr rr                     JMP NOW_DISP            ; The character not needed to add  <LF>, so jump to NOW_DISP
-000174r 3  A9 0A        ADD_LF:         LDA #$0A                ; Take a >LF> char
-000176r 3  20 rr rr                     JSR ACIA_Output         ; and send it to serial ACIA1
-000179r 3  68           NOW_DISP:       PLA                     ; Restore the character received with the function, on  Accu.
-00017Ar 3  4C 05 EF                     JMP OUTDIS              ; Now Go to display the character on Accu. (JMP OUTDIS) , ending the serialize and display the character
-00017Dr 3               
-00017Dr 3               
-00017Dr 3               
-00017Dr 3               
-00017Dr 3               ;-------------------------------------------------------------------------------
-00017Dr 3               ; Input a character from the serial interface.
-00017Dr 3               ; On return, carry flag indicates whether a key was pressed
-00017Dr 3               ; If a key was pressed, the key value will be in the A register
-00017Dr 3               
-00017Dr 3               ACIA1_Input:
-00017Dr 3  AD D9 A4                    lda   ACIA_STATUS                ; Serial port status
-000180r 3  29 08                       and   #$08                       ; is recvr full
-000182r 3  F0 F9                       beq   ACIA1_Input                ; no char to get
-000184r 3  AD D8 A4                    Lda   ACIA_DATA                  ; get chr
-000187r 3  20 rr rr                     jsr     CHROUT                  ; echo
-00018Ar 3  38                           SEC
-00018Br 3  60                          RTS                              ;
-00018Cr 3               
-00018Cr 3               ; INPUT CHARACTER FROM SERIAL BUFFER
-00018Cr 3               
-00018Cr 3               ACIA2_Input:
-00018Cr 3  20 rr rr                     jsr     ACIA_Input
-00018Fr 3  90 FB                        bcc     ACIA2_Input
-000191r 3               ;                JSR     ACIA_Output
-000191r 3  60                           rts
-000192r 3               
-000192r 3               
-000192r 3               
-000192r 3               ;
-000192r 3               ; Modifies: flags, A
-000192r 3               ;SERRDKEY:
-000192r 3               ACIA_Input:
-000192r 3  48                           pha
-000193r 3  8A                           txa
-000194r 3  48                           pha
-000195r 3               ;                phx
-000195r 3  20 rr rr                     jsr     BUFFER_SIZE
-000198r 3  F0 1A                        beq     @no_keypressed
-00019Ar 3  20 rr rr                     jsr     READ_BUFFER
-00019Dr 3  20 rr rr                     jsr     CHROUT                  ; echo
-0001A0r 3               ;                pha
-0001A0r 3  20 rr rr                     jsr     BUFFER_SIZE
-0001A3r 3  C9 B0                        cmp     #$B0
-0001A5r 3  B0 08                        bcs     @mostly_full
-0001A7r 3  A9 09                        lda     #HS_ON                    ; set 1
-0001A9r 3  0D DA A4                     ora     HS_PORT
-0001ACr 3  8D DA A4                     sta     HS_PORT
-0001AFr 3               @mostly_full:
-0001AFr 3  68                           pla
-0001B0r 3  AA                           tax
+00014Fr 3               ;                lda     ACIA_DATA       ; CLEAR INTERRUPT FLAG
+00014Fr 3  58                           cli                     ; ENABLE INTERRUPTS
+000150r 3  60                           rts
+000151r 3               
+000151r 3               
+000151r 3               ;******************************************************************************
+000151r 3               ;Setting <M> = 010C 4C 00 04,  the F2 AIM-65 Function key call  subr
+000151r 3               ;to return the address pointed for DILINK to $EF05
+000151r 3               ;*******************************************************************************
+000151r 3               
+000151r 3  A9 05        CALL_F4:        LDA #<OUTDIS    ; RESTORE NORMAL DISPLAY
+000153r 3  8D 06 A4                     STA DILINK
+000156r 3  A9 EF                        LDA #>OUTDIS
+000158r 3  8D 07 A4                     STA DILINK+1
+00015Br 3               ;                lda     #HS_OFF                    ; set 0
+00015Br 3               ;                and     HS_PORT
+00015Br 3               ;                sta     HS_PORT
+00015Br 3  A9 20                        LDA #$20        ; RESTORE KEYBOARD INPUT
+00015Dr 3  8D 12 A4                     STA INFLG
+000160r 3  60                           RTS
+000161r 3               
+000161r 3               ;************************************************************************
+000161r 3               ;The Display routine on AIM-65,  JUMP to the new DILINK addr.
+000161r 3               ;so ROUTES the character to serial procedure before display it.
+000161r 3               ;************************************************************************
+000161r 3  48           DISP_ECHO:      PHA                     ; Save Character to Stack
+000162r 3               
+000162r 3  68           PREP_SEND:      PLA                     ; Restore Character from Stack
+000163r 3  48                           PHA                     ; and save it
+000164r 3  29 7F                        and     #$7f
+000166r 3  20 rr rr                     JSR ACIA_Output         ; Send the character to serial ACIA1 (Subroutine SEND_CHAR)
+000169r 3  68                           PLA                     ; Restore Character from stack
+00016Ar 3  48                           PHA                     ; and save it again
+00016Br 3  C9 0D                        CMP #$0D                ; Was a <CR> ?
+00016Dr 3  F0 07                        BEQ ADD_LF              ; Then add Line Feed
+00016Fr 3  C9 8D                        CMP #$8D                ; Was a <CR> with MSB = 1?
+000171r 3  F0 03                        BEQ ADD_LF              ; Then add Line Feed
+000173r 3  4C rr rr                     JMP NOW_DISP            ; The character not needed to add  <LF>, so jump to NOW_DISP
+000176r 3  A9 0A        ADD_LF:         LDA #$0A                ; Take a >LF> char
+000178r 3  20 rr rr                     JSR ACIA_Output         ; and send it to serial ACIA1
+00017Br 3  68           NOW_DISP:       PLA                     ; Restore the character received with the function, on  Accu.
+00017Cr 3  4C 05 EF                     JMP OUTDIS              ; Now Go to display the character on Accu. (JMP OUTDIS) , ending the serialize and display the character
+00017Fr 3               
+00017Fr 3               
+00017Fr 3               
+00017Fr 3               
+00017Fr 3               ;-------------------------------------------------------------------------------
+00017Fr 3               ; Input a character from the serial interface.
+00017Fr 3               ; On return, carry flag indicates whether a key was pressed
+00017Fr 3               ; If a key was pressed, the key value will be in the A register
+00017Fr 3               
+00017Fr 3               ACIA1_Input:
+00017Fr 3  AD D9 A4                    lda   ACIA_STATUS                ; Serial port status
+000182r 3  29 08                       and   #$08                       ; is recvr full
+000184r 3  F0 F9                       beq   ACIA1_Input                ; no char to get
+000186r 3  AD D8 A4                    Lda   ACIA_DATA                  ; get chr
+000189r 3  20 rr rr                     jsr     CHROUT                  ; echo
+00018Cr 3  38                           SEC
+00018Dr 3  60                          RTS                              ;
+00018Er 3               
+00018Er 3               ; INPUT CHARACTER FROM SERIAL BUFFER
+00018Er 3               
+00018Er 3               ACIA2_Input:
+00018Er 3  20 rr rr                     jsr     ACIA_Input
+000191r 3  90 FB                        bcc     ACIA2_Input
+000193r 3               ;                JSR     ACIA_Output
+000193r 3  60                           rts
+000194r 3               
+000194r 3               
+000194r 3               
+000194r 3               ;
+000194r 3               ; Modifies: flags, A
+000194r 3               ;SERRDKEY:
+000194r 3               ACIA_Input:
+000194r 3  8A                           txa
+000195r 3  48                           pha
+000196r 3               ;                phx
+000196r 3  20 rr rr                     jsr     BUFFER_SIZE
+000199r 3  F0 1B                        beq     @no_keypressed
+00019Br 3  20 rr rr                     jsr     READ_BUFFER
+00019Er 3  20 rr rr                     jsr     CHROUT                  ; echo
+0001A1r 3  A8                           tay
+0001A2r 3  20 rr rr                     jsr     BUFFER_SIZE
+0001A5r 3  C9 B0                        cmp     #$B0
+0001A7r 3  B0 08                        bcs     @mostly_full
+0001A9r 3  A9 09                        lda     #HS_ON                    ; set 1
+0001ABr 3  0D DA A4                     ora     HS_PORT
+0001AEr 3  8D DA A4                     sta     HS_PORT
+0001B1r 3               @mostly_full:
 0001B1r 3  68                           pla
-0001B2r 3               ;                plx
-0001B2r 3  38                           sec
-0001B3r 3  60                           rts
-0001B4r 3               @no_keypressed:
-0001B4r 3               ;                plx
-0001B4r 3  68                           pla
-0001B5r 3  AA                           tax
+0001B2r 3  AA           		tax
+0001B3r 3               ;                plx
+0001B3r 3  98           		tya
+0001B4r 3  38                           sec
+0001B5r 3  60                           rts
+0001B6r 3               @no_keypressed:
+0001B6r 3               ;                plx
 0001B6r 3  68                           pla
-0001B7r 3  18                           clc
-0001B8r 3  60                           rts
-0001B9r 3               
-0001B9r 3               
-0001B9r 3               ; Output a character (from the A register) to the serial interface.
-0001B9r 3               ;
-0001B9r 3               ; Modifies: flags
-0001B9r 3               ;MONCOUT:
-0001B9r 3               ;SERCOUT:
-0001B9r 3  90 0E        OUTTST:         bcc     OTINIT
-0001BBr 3  68                           pla
-0001BCr 3  29 7F                        and     #$7f
-0001BEr 3               CHROUT:
-0001BEr 3               ACIA_Output:
-0001BEr 3  48                           pha
-0001BFr 3  8D D8 A4                     sta     ACIA_DATA
-0001C2r 3  A9 FF                        lda     #$FF
-0001C4r 3               ;@txdelay:       dec     a
-0001C4r 3  E9 01        @txdelay:       sbc     #1
-0001C6r 3  D0 FC                        bne     @txdelay
-0001C8r 3  68                           pla
-0001C9r 3  60           OTINIT:         rts
-0001CAr 3               
-0001CAr 3               ; Initialize the circular input buffer
-0001CAr 3               ; Modifies: flags, A
-0001CAr 3               SER_INIT_BUFFER:
-0001CAr 3  A9 00                        lda #0
-0001CCr 3  85 EC                        sta READ_PTR
-0001CEr 3  A5 EC                        lda READ_PTR
-0001D0r 3  85 ED                        sta WRITE_PTR
-0001D2r 3               ;                lda #$01
-0001D2r 3               ;                sta DDRA
-0001D2r 3  A9 09                        lda     #HS_ON                    ; set 1
-0001D4r 3  0D DA A4                     ora     HS_PORT
-0001D7r 3  8D DA A4                     sta     HS_PORT
-0001DAr 3  60                           rts
-0001DBr 3               
-0001DBr 3               ; Write a character (from the A register) to the circular input buffer
-0001DBr 3               ; Modifies: flags, X
-0001DBr 3               WRITE_BUFFER:
-0001DBr 3  A6 ED                        ldx WRITE_PTR
-0001DDr 3  9D rr rr                     sta SER_IP_BUF,x
-0001E0r 3  E6 ED                        inc WRITE_PTR
-0001E2r 3  60                           rts
-0001E3r 3               
-0001E3r 3               ; Read a character from the circular input buffer and put it in the A register
-0001E3r 3               ; Modifies: flags, A, X
-0001E3r 3               READ_BUFFER:
-0001E3r 3  A6 EC                        ldx READ_PTR
-0001E5r 3  BD rr rr                     lda SER_IP_BUF,x
-0001E8r 3  E6 EC                        inc READ_PTR
-0001EAr 3  60                           rts
-0001EBr 3               
-0001EBr 3               ; Return (in A) the number of unread bytes in the circular input buffer
-0001EBr 3               ; Modifies: flags, A
-0001EBr 3               BUFFER_SIZE:
-0001EBr 3  A5 ED                        lda WRITE_PTR
-0001EDr 3  38                           sec
-0001EEr 3  E5 EC                        sbc READ_PTR
-0001F0r 3  60                           rts
-0001F1r 3               
-0001F1r 3               
-0001F1r 3               ; Interrupt request handler
-0001F1r 3               IRQ_HANDLER:
-0001F1r 3  48                           pha
-0001F2r 3  8A                           txa
-0001F3r 3  48                           pha
-0001F4r 3               ;                phx
-0001F4r 3  AD D9 A4                     lda     ACIA_STATUS
-0001F7r 3                               ; For now, assume the only source of interrupts is incoming data
-0001F7r 3  AD D8 A4                     lda     ACIA_DATA
-0001FAr 3  20 rr rr                     jsr     WRITE_BUFFER
-0001FDr 3  20 rr rr                     jsr     BUFFER_SIZE
-000200r 3  C9 F0                        cmp     #$F0
-000202r 3  90 08                        bcc     @not_full
-000204r 3  A9 F3                        lda #HS_OFF                        ; set 0
-000206r 3  2D DA A4                     and HS_PORT
-000209r 3  8D DA A4                     sta HS_PORT
-00020Cr 3               @not_full:
-00020Cr 3               ;                plx
-00020Cr 3  68                           pla
-00020Dr 3  AA                           tax
-00020Er 3  68                           pla
-00020Fr 3  40                           rti
-000210r 3               
-000210r 3               ;.include "wozmon.s"
-000210r 3               
-000210r 3               ;.segment "RESETVEC"
-000210r 3               ;                .word   $0F00           ; NMI vector
-000210r 3               ;                .word   COLD_START           ; NMI vector
-000210r 3               ;                .word   RESET           ; RESET vector
-000210r 3  rr rr                        .word   IRQ_HANDLER     ; IRQ vector
-000212r 3               
-000212r 3               
-000212r 2               .include "mecb_lcd.s"
-000212r 3               .segment "LCD"
+0001B7r 3  AA                           tax
+0001B8r 3  18                           clc
+0001B9r 3  60                           rts
+0001BAr 3               
+0001BAr 3               
+0001BAr 3               ; Output a character (from the A register) to the serial interface.
+0001BAr 3               ;
+0001BAr 3               ; Modifies: flags
+0001BAr 3               ;MONCOUT:
+0001BAr 3               ;SERCOUT:
+0001BAr 3  90 0E        OUTTST:         bcc     OTINIT
+0001BCr 3  68                           pla
+0001BDr 3  29 7F                        and     #$7f
+0001BFr 3               CHROUT:
+0001BFr 3               ACIA_Output:
+0001BFr 3  48                           pha
+0001C0r 3  8D D8 A4                     sta     ACIA_DATA
+0001C3r 3  A9 FF                        lda     #$FF
+0001C5r 3               ;@txdelay:       dec     a
+0001C5r 3  E9 01        @txdelay:       sbc     #1
+0001C7r 3  D0 FC                        bne     @txdelay
+0001C9r 3  68                           pla
+0001CAr 3  60           OTINIT:         rts
+0001CBr 3               
+0001CBr 3               ; Initialize the circular input buffer
+0001CBr 3               ; Modifies: flags, A
+0001CBr 3               SER_INIT_BUFFER:
+0001CBr 3  A9 00                        lda #0
+0001CDr 3  85 EC                        sta READ_PTR
+0001CFr 3  A5 EC                        lda READ_PTR
+0001D1r 3  85 ED                        sta WRITE_PTR
+0001D3r 3               ;                lda #$01
+0001D3r 3               ;                sta DDRA
+0001D3r 3  A9 09                        lda     #HS_ON                    ; set 1
+0001D5r 3  0D DA A4                     ora     HS_PORT
+0001D8r 3  8D DA A4                     sta     HS_PORT
+0001DBr 3  60                           rts
+0001DCr 3               
+0001DCr 3               ; Write a character (from the A register) to the circular input buffer
+0001DCr 3               ; Modifies: flags, X
+0001DCr 3               WRITE_BUFFER:
+0001DCr 3  A6 ED                        ldx WRITE_PTR
+0001DEr 3  9D rr rr                     sta SER_IP_BUF,x
+0001E1r 3  E6 ED                        inc WRITE_PTR
+0001E3r 3  60                           rts
+0001E4r 3               
+0001E4r 3               ; Read a character from the circular input buffer and put it in the A register
+0001E4r 3               ; Modifies: flags, A, X
+0001E4r 3               READ_BUFFER:
+0001E4r 3  A6 EC                        ldx READ_PTR
+0001E6r 3  BD rr rr                     lda SER_IP_BUF,x
+0001E9r 3  E6 EC                        inc READ_PTR
+0001EBr 3  60                           rts
+0001ECr 3               
+0001ECr 3               ; Return (in A) the number of unread bytes in the circular input buffer
+0001ECr 3               ; Modifies: flags, A
+0001ECr 3               BUFFER_SIZE:
+0001ECr 3  A5 ED                        lda WRITE_PTR
+0001EEr 3  38                           sec
+0001EFr 3  E5 EC                        sbc READ_PTR
+0001F1r 3  60                           rts
+0001F2r 3               
+0001F2r 3               
+0001F2r 3               ; Interrupt request handler
+0001F2r 3               IRQ_HANDLER:
+0001F2r 3  48                           pha
+0001F3r 3  8A                           txa
+0001F4r 3  48                           pha
+0001F5r 3               ;                phx
+0001F5r 3  AD D9 A4                     lda     ACIA_STATUS
+0001F8r 3                               ; For now, assume the only source of interrupts is incoming data
+0001F8r 3  AD D8 A4                     lda     ACIA_DATA
+0001FBr 3  20 rr rr                     jsr     WRITE_BUFFER
+0001FEr 3  20 rr rr                     jsr     BUFFER_SIZE
+000201r 3  C9 F0                        cmp     #$F0
+000203r 3  90 08                        bcc     @not_full
+000205r 3  A9 F3                        lda #HS_OFF                        ; set 0
+000207r 3  2D DA A4                     and HS_PORT
+00020Ar 3  8D DA A4                     sta HS_PORT
+00020Dr 3               @not_full:
+00020Dr 3               ;                plx
+00020Dr 3  68                           pla
+00020Er 3  AA                           tax
+00020Fr 3  68                           pla
+000210r 3  40                           rti
+000211r 3               
+000211r 3               ;.include "wozmon.s"
+000211r 3               
+000211r 3               ;.segment "RESETVEC"
+000211r 3               ;                .word   $0F00           ; NMI vector
+000211r 3               ;                .word   COLD_START           ; NMI vector
+000211r 3               ;                .word   RESET           ; RESET vector
+000211r 3  rr rr                        .word   IRQ_HANDLER     ; IRQ vector
+000213r 3               
+000213r 3               
+000213r 2               .include "mecb_lcd.s"
+000213r 3               .segment "LCD"
 000000r 3               .ifdef MECB
 000000r 3               
 000000r 3               PORTB = MECB_VIA_BASE + 0

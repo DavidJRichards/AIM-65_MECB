@@ -420,10 +420,10 @@
 0403   E0D5 EA                 NOP
 0404   E0D6 EA                 NOP ;       
 0405   E0D7             
-0406   E0D7             ;       JSR  BIOS_INIT  ; cutom bios extensions
-0407   E0D7 EA                 NOP
-0408   E0D8 EA                 NOP
-0409   E0D9 EA                 NOP
+0406   E0D7 20 08 A8           JSR  BIOS_INIT  ; cutom bios extensions
+0407   E0DA             ;       NOP
+0408   E0DA             ;       NOP
+0409   E0DA             ;       NOP
 0410   E0DA             
 0411   E0DA EA                 NOP
 0412   E0DB EA                 NOP

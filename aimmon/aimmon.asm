@@ -403,10 +403,10 @@ RS1    LDA INTAB1,X    ;PB1-PB0,PA7-PA0 FOR PRNTR
        NOP
        NOP ;       
 
-;       JSR  BIOS_INIT  ; cutom bios extensions
-       NOP
-       NOP
-       NOP
+       JSR  BIOS_INIT  ; cutom bios extensions
+;       NOP
+;       NOP
+;       NOP
 
        NOP
        NOP

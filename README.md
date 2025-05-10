@@ -156,22 +156,30 @@ These macro definitions are used in the Basic and Monitor sources:
 
 <BR>
 
-|                 |0 Custom|1 25x80-60|2 22x72-50|3 16x40-50|4 25x40-60|
-|-----------------|--------|----------|----------|----------|----------|
-| R0 H total chrs  | 108    | 108      | 108      |  54      |  54      |
-| R1 H displayed   |  72    |  80      |  72      |  40      |  40      |
-| R2 H sync pos    |  85    |  89      |  85      |  45      |  44      |
-| R3 HV sync width | $59    | $59      | $59      | $55      | $55      |108
-| R4 V total rows  |  31    |  31      |  26      |  26      |  31      |
-| R5 V adjust      |   2    |   2      |   2      |   2      |   2      |
-| R6 V displayed   |  25    |  25      |  22      |  16      |  25      |
-| R7 V sync pos    |  28    |  28      |  24      |  21      |  28      |
-||||||
-| chars/row as R1  |  72    |  80      |  72      |  40      |  40      |
-| rows as R6       |  25    |  25      |  22      |  16      |  25      |
-|    H x V msb     | $07    | $07      | $06      | $02      | $03      |
-|    H x V lsb     | $D0    | $D0      | $30      | $80      | $E8      |
-
+|                      |4 Custom|0 25x80-60|1 22x72-50|2 16x40-50|3 25x40-60|
+|----------------------|--------|----------|----------|----------|----------|
+| R0 H total chrs      | 108    | 108      | 108      |  54      |  54      |
+| R1 H displayed       |  72    |  80      |  72      |  40      |  40      |
+| R2 H sync pos        |  85    |  89      |  85      |  45      |  44      |
+| R3 HV sync width     | $59    | $59      | $59      | $55      | $55      |108
+| R4 V total rows      |  31    |  31      |  26      |  26      |  31      |
+| R5 V adjust          |   2    |   2      |   2      |   2      |   2      |
+| R6 V displayed       |  25    |  25      |  22      |  16      |  25      |
+| R7 V sync pos        |  28    |  28      |  24      |  21      |  28      |
+|                      | |   | | |
+| chars/row as R1      |  72    |  80      |  72      |  40      |  40      |
+| rows as R6           |  25    |  25      |  22      |  16      |  25      |
+|    H x V msb         | $07    | $07      | $06      | $02      | $03      |
+|    H x V lsb         | $D0    | $D0      | $30      | $80      | $E8      |
+|                      | |   | | |
+| R8 Mode / Interlace  | $30| | |
+| R9 Scan lines per row|   9| | |
+| R10 Cursor start H   |   0| | |
+| R11 Cursor start L   |  10| | |
+| R12 Display start H  | $90| | |
+| R13 Display start L  |   0| | |
+| R14 Cursor pos H     | $90| | |
+| R15 Cursor pos L     |   0| | |
 
 ## Ram DISPLAY memory locations
 
@@ -246,6 +254,7 @@ Called manually at address $A000 or from patched monitor code as subroutine at $
 |------|----|-----------------------------|
 |DILINK|A406|                             |
 |UIN   |0108|                             |
+|UOUT  |010A|                             |
 |INFLG |A412|SP,'U', etc                  |
 |F1    |010C|                             |
 |F2    |010F|                             |
