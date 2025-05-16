@@ -1,0 +1,88 @@
+0000                             ; 
+0000                CHRGET:   EQU   $00bf   ; This is the start/entry point for the BASIC subroutine.
+0000                WEDGE:    EQU   $d00c   ; AH5050 firmware BASIC wedge.
+0000                             ; 
+0000                BASICC:   EQU   $B000   ; BASIC Cold start entry point.
+0000                BASICW:   EQU   $B003   ; BASIC Warm start entry point?
+0000                             ; 
+0000                KEYF1:    EQU   $010c   ; Invoke the AH5050 filer.
+0000                COMIN:    EQU   $E1A1   ; Back to AIM-65 MONITOR.
+0000                             ; 
+0000                STARTV:   EQU   $0073   ; This is the BASIC pointer to the start of the program.
+0000                NSTART:   EQU   $0301   ; This is where we want the BASIC program area to start.
+0000                             ; 
+0000                             ; 
+0000                             ; Set code start for use by the assembler.
+0270                          .ORG   $0270   
+0270                             ; 
+0270                             ; Move start of BASIC pointer to new location within RAM.
+0270   A9 01                  LDA   #<nstart   ; Low byte...
+0272   85 73                  STA   startv   
+0274   A9 03                  LDA   #>nstart   ; High byte...
+0276   85 74                  STA   startv+1   
+0278                             ; 
+0278                             ; Clear start of BASIC region (so the BASIC statements NEW, etc. work).
+0278   A9 00                  LDA   #$00   
+027A   8D 00 03               STA   nstart-1   ; MS BASIC wants $00 before the program area.
+027D   8D 01 03               STA   nstart   ; This is a "NULL" program in BASIC.
+0280   8D 02 03               STA   nstart+1   ; "   "   "   "   "   "   "   "   ".
+0283                             ; 
+0283                             ; Install the BASIC "wedge" into the AH5050 firmware.
+0283                             ; NOTE: A re-written CHRGET subroutine...
+0283   A2 17                  LDX   #LENGTH   ; Number of bytes to transfer (actually one less - because we transfer index 0).
+0285                COPY:        
+0285   BD 90 02               LDA   source,X   ; Get a byte from INIBAS at source+X.
+0288   95 BF                  STA   chrget,X   ; Store the byte into page 0 at chrget+X.
+028A   CA                     DEX      ; One less byte to copy...
+028B   10 F8                  BPL   COPY   ; Keep copying (if more bytes to do)...
+028D                             ; 
+028D   4C A1 E1               JMP   COMIN   ; All done. I could also enter BASIC warm start or the AH5050 filer?
+0290                             ; 
+0290                             ; These are the bytes for the modified CHRGET routine...
+0290                             ; 
+0290                SOURCE:      
+0290                             ; 
+0290   E6 C6                  DB   $E6,$C6   ; Address $00BF.
+0292   D0 02                  DB   $D0,$02   
+0294   E6 C7                  DB   $E6,$C7   
+0296   AD 60 EA               DB   $AD,$60,$EA   
+0299   C9 20                  DB   $C9,$20   
+029B   F0 F3                  DB   $F0,$F3   
+029D   C9 3A                  DB   $C9,$3A   
+029F   F0 06                  DB   $F0,$06   
+02A1   4C 0C D0               DB   $4C,$0C,$D0   
+02A4   EA                     DB   $EA   
+02A5   EA                     DB   $EA   
+02A6   EA                     DB   $EA   
+02A7   60                     DB   $60   ; Address $00D6.
+02A8                             ; 
+02A8                LENGTH:   EQU   $-SOURCE-1   
+02A8                             ; 
+02A8                             ; Needs to be BELOW address $0300. This is where BASIC has been modified to
+02A8                             ; store its program. We will have obliterated this address with a null
+02A8                             ; program above. So, if we exceed this limit, we will get corrupted!
+02A8                             ; 
+02A8                          END      
+02A8                             ; 
+
+
+CHRGET:             00BF DEFINED AT LINE 2
+                    > USED AT LINE 35
+WEDGE:              D00C DEFINED AT LINE 3
+BASICC:             B000 DEFINED AT LINE 5
+BASICW:             B003 DEFINED AT LINE 6
+KEYF1:              010C DEFINED AT LINE 8
+COMIN:              E1A1 DEFINED AT LINE 9
+                    > USED AT LINE 39
+STARTV:             0073 DEFINED AT LINE 11
+                    > USED AT LINE 20
+                    > USED AT LINE 22
+NSTART:             0301 DEFINED AT LINE 12
+                    > USED AT LINE 26
+                    > USED AT LINE 27
+                    > USED AT LINE 28
+COPY:               0285 DEFINED AT LINE 33
+                    > USED AT LINE 37
+SOURCE:             0290 DEFINED AT LINE 43
+                    > USED AT LINE 34
+LENGTH:             0017 DEFINED AT LINE 59

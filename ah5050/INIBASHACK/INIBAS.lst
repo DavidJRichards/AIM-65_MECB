@@ -1,0 +1,358 @@
+0000                RAMSTART2:   EQU   $0270   ; This is where our (new) BASIC program is to start (minus 1). Was $0300. Now $0270.
+0000                COLD_START:   EQU   $0270   ; This is where INIBAS loads and runs.
+0000                             ; Page zero definitions sorted in address order.
+0000                             ; 
+0000                GORESTART:   EQU   $00   ; New-line jump.
+0000                GOSTROUT:   EQU   $03   ; USR jump?
+0000                Z14:      EQU   $10   ; Input flag: suppress output if negative.
+0000                Z17:      EQU   $12   ; Width.
+0000                Z18:      EQU   $13   ; Input column limit.
+0000                LINNUM:   EQU   $14   ; Integer address.
+0000                TEMPPT:   EQU   $5E   ; Temporary string descriptor stack pointer.
+0000                LASTPT:   EQU   $5F   ; Last temporary string pointer.
+0000                TEMPST:   EQU   $61   ; Stack of descriptors for temporary strings.
+0000                TXTTAB:   EQU   $73   ; Pointer: Start-of-BASIC memory.
+0000                MEMSIZ:   EQU   $7F   ; Pointer: Limit of BASIC memory.
+0000                CURLIN:   EQU   $81   ; Current BASIC line number.
+0000                DSCLEN:   EQU   $9B   ; Work area: garbage yardstick.
+0000                JMPADRS:   EQU   $9C   ; Jump vector for functions.
+0000                SHIFTSIGNEXT:   EQU   $B0   ; Acc No. 1 high-order (overflow) word.
+0000                ATN:      EQU   $BB   ; Error jump.
+0000                CHRGET:   EQU   $BF   ; Subroutine: Get BASIC char.
+0000                CHRGOT:   EQU   $C5   ; 
+0000                TXTPTR:   EQU   $C6   ; BASIC pointer.
+0000                             ; BASIC entry points sorted in address order.
+0000                             ; 
+0000                LINGET:   EQU   $B7DA   ; Get fixed-point number from BASIC line.
+0000                CRDO:     EQU   $B900   ; Output CRLF.
+0000                STROUT:   EQU   $B94A   ; Print string from memory.
+0000                NXIN:     EQU   $B9E7   ; Prompt and receive input.
+0000                SYNERR:   EQU   $BCD0   ; Print SN (syntax) and exit.
+0000                IQERR:    EQU   $BF87   ; Illegal Quantity error.
+0000                GOTOBASIC:   EQU   $CF83   ; Complete the BASIC COLD START.
+0000                QT_MEMORY_SIZE:   EQU   $CFAF   ; Text string for "MEMORY SIZE".
+0000                QT_TERMINAL_WIDTH:   EQU   $CFBB   ; Text string for "WIDTH".
+0000                             ; AH5050 firmware entry point for BASIC enhancements.
+0000                             ; 
+0000                WEDGE:    EQU   $D00C   ; AH5050 firmware entry point for BASIC enhancements.
+0000                             ; Terminal characteristics.
+0000                             ; 
+0000                WIDTH:    EQU   20   
+0000                WIDTH2:   EQU   10   
+0000                             ; This is where INIBAS is going to load and run...
+0000                             ; 
+0270                          .ORG   COLD_START   
+0270                             ; 
+0270                             ; Default BASIC to immediate mode commands.
+0270                             ; 
+0270   A2 FF                  LDX   #$FF   
+0272   86 82                  STX   CURLIN+1   
+0274                             ; Define the initial stack pointer for the CPU.
+0274                             ; 
+0274   A2 FE                  LDX   #$FE   
+0276   9A                     TXS      
+0277                             ; Initialise the "jump vector" at location 0 to point back into us for a cold restart.
+0277                             ; This is overridden once BASIC is up and running.
+0277                             ; 
+0277   A9 70                  LDA   #<COLD_START   ; Lo byte of pointer.
+0279   A0 02                  LDY   #>COLD_START   ; Hi byte of pointer.
+027B   85 01                  STA   GORESTART+1   ; Lo byte of pointer.
+027D   84 02                  STY   GORESTART+2   ; Hi byte of pointer.
+027F                             ; Patch a 6502 "jmp" instruction to where they are required...
+027F                             ; 
+027F   A9 4C                  LDA   #$4C   ; 6502 "jmp" instruction.
+0281   85 00                  STA   GORESTART   ; Store it here...
+0283   85 9C                  STA   JMPADRS   ; And here...
+0285   85 BB                  STA   ATN   ; And here...
+0287   85 03                  STA   GOSTROUT   ; And here...
+0289   A9 87                  LDA   #<IQERR   ; Lo. Some sort of error pointer?
+028B   A0 BF                  LDY   #>IQERR   ; Hi. Some sort of error pointer?
+028D   85 BC                  STA   ATN+1   ; Store Lo byte.
+028F   84 BD                  STY   ATN+2   ; Store Hi byte.
+0291   85 04                  STA   GOSTROUT+1   ; Store Lo byte.
+0293   84 05                  STY   GOSTROUT+2   ; Store Hi byte.
+0295   A9 14                  LDA   #WIDTH   ; Initialise the default terminal width.
+0297   85 12                  STA   Z17   ; "   "   "   "   "   "   "   "   "   "
+0299   A9 0A                  LDA   #WIDTH2   ; Initialise the default input column width.
+029B   85 13                  STA   Z18   ; "   "   "   "   "   "   "   "   "   "   "
+029D                             ; Copy my generic CHRGET into page zero memory...
+029D                             ; 
+029D   A2 17                  LDX   #$17   ; Length of GENERIC_CHRGET code to copy. Note that index 0 also gets copied!
+029F                LOOP1:       
+029F   BD 50 03               LDA   GENERIC_CHRGET,x   ; From location (in INIBAS).
+02A2   95 BF                  STA   CHRGET,x   ; To location (in page 0).
+02A4   CA                     DEX      ; One less to copy...
+02A5   10 F8                  BPL   LOOP1   ; Copy from index [$17] back to index [$00].
+02A7   A9 03                  LDA   #$03   ; No idea!
+02A9   85 9B                  STA   DSCLEN   ; No idea!
+02AB                             ; I assume at this point (with the original "bne" instruction in the loop above) that index register X is assumed to be zero here?!
+02AB                             ; 
+02AB                             ; This was the instruction that was here: "txa".
+02AB                             ; 
+02AB   A9 00                  LDA   #0   ; Make the accumulator 0 then...
+02AD   85 B0                  STA   SHIFTSIGNEXT   ; No idea!
+02AF   85 60                  STA   LASTPT+1   ; No idea!
+02B1   48                     PHA      ; This is saving the accumulator on the stack for some reason... Where is this "pla" I ask myself?!
+02B2   85 10                  STA   Z14   ; No idea!
+02B4   20 00 B9               JSR   CRDO   ; Output CRLF.
+02B7   A2 61                  LDX   #TEMPST   ; No idea.
+02B9   86 5E                  STX   TEMPPT   ; No idea.
+02BB                             ; This is where we identify the MEMORY SIZE. Be this from the USER in response to the question,
+02BB                             ; or determined by the USER entering a <CR> and the code performing a destructive memory test.
+02BB   A9 AF                  LDA   #<QT_MEMORY_SIZE   ; Lo address of "MEMORY SIZE" text to be displayed.
+02BD   A0 CF                  LDY   #>QT_MEMORY_SIZE   ; Hi address of "MEMORY SIZE" text to be displayed.
+02BF   20 4A B9               JSR   STROUT   ; Display the specified text message to the user.
+02C2   20 E7 B9               JSR   NXIN   ; Prompt the user and receive input from them.
+02C5   86 C6                  STX   TXTPTR   ; Lo byte of buffer address?
+02C7   84 C7                  STY   TXTPTR+1   ; Hi byte of buffer address?
+02C9   20 BF 00               JSR   CHRGET   ; Get a character. I assume this is using our CHRGET subroutine?!
+02CC   A8                     TAY      ; Character just "got" into Y for safe keeping. NO! It sets the flags!
+02CD   D0 27                  BNE   L40EE   ; Is this the user entering something (as opposed to just a NEWLINE)?
+02CF                             ; This is where we want our BASIC program to start... DO I EVEN NEED THIS CODE HERE?!
+02CF                             ; 
+02CF                             ;lda     #<RAMSTART2		; Lo.
+02CF                             ;ldy     #>RAMSTART2		; Hi.
+02CF                             ;sta     TXTTAB			; Lo byte.
+02CF                             ;sty     TXTTAB+1			; Hi byte.
+02CF                             ; This is where we want our destructive memory test to start from...
+02CF                             ; And not to corrupt INIBAS itself!
+02CF                             ; 
+02CF   A9 68                  LDA   #<INIBAS_END   ; Lo.
+02D1   A0 03                  LDY   #>INIBAS_END   ; Hi.
+02D3   85 14                  STA   LINNUM   ; Lo byte.
+02D5   84 15                  STY   LINNUM+1   ; Hi byte.
+02D7   A0 00                  LDY   #$00   ; Default index register Y to 0 so we can use indexed addressing.
+02D9                             ; I am guessing that this code is performing a destructive memory test...
+02D9                             ; 
+02D9                L40D7:       
+02D9   E6 14                  INC   LINNUM   ; Bump the Lo byte of the pointer.
+02DB   D0 08                  BNE   L40DD   ; If it didn't wrap around to 0 no need to bump the Hi byte.
+02DD   E6 15                  INC   LINNUM+1   ; Bump the Hi byte of the pointer.
+02DF                             ; AIM65: hard RAM top limit is $A000
+02DF   A5 15                  LDA   LINNUM+1   ; Pick up the Hi byte of the pointer.
+02E1   C9 A0                  CMP   #$A0   ; Has it wrapped over to $A0?
+02E3   F0 1D                  BEQ   L40FA   ; If it has, then we will prematurely call it a day and exit!
+02E5                L40DD:       
+02E5   A9 55                  LDA   #$55   ; Destructive memory value = 01010101.
+02E7   91 14                  STA   (LINNUM),y   ; Store value away to memory.
+02E9   D1 14                  CMP   (LINNUM),y   ; Is it the same as we stored?
+02EB   D0 15                  BNE   L40FA   ; If not, we must have just passed the end of memory.
+02ED   0A                     ASL   a   ; Destructive memory value = 10101010.
+02EE   91 14                  STA   (LINNUM),y   ; Store value away to the SAME memory address.
+02F0   D1 14                  CMP   (LINNUM),y   ; Is it the same as we stored?
+02F2   D0 0E                  BNE   L40FA   ; If not, we must have just passed the end of memory.
+02F4   F0 E3                  BEQ   L40D7   ; Keep looping if there is real memory here...
+02F6                             ; 
+02F6                             ; We shouldn't get here as we have a pair of bne/beq instructions just before here.
+02F6                             ; 
+02F6                             ; The user entered a MEMORY SIZE limit (possibly)?
+02F6                             ; 
+02F6                L40EE:       
+02F6   20 C5 00               JSR   CHRGOT   ; ???
+02F9   20 DA B7               JSR   LINGET   ; ??? Line number input?
+02FC   A8                     TAY      ; Set the flags based upon the character in the accumulator.
+02FD   F0 03                  BEQ   L40FA   ; A value of ZERO indicates "all OK" by the looks of it.
+02FF   4C D0 BC               JMP   SYNERR   ; SYNTAX error. Does this cold restart I wonder?
+0302                             ; Presumably the MEMORY SIZE answer (in all cases) is stored in LINNUM (and LINNUM+1 of course).
+0302                L40FA:       
+0302   A5 14                  LDA   LINNUM   ; Lo byte.
+0304   A4 15                  LDY   LINNUM+1   ; Hi byte.
+0306   85 7F                  STA   MEMSIZ   ; Lo byte.
+0308   84 80                  STY   MEMSIZ+1   ; Hi byte.
+030A                             ; This is were we identify the WIDTH of the terminal (output device).
+030A                             ; 
+030A                L4106:       
+030A   A9 BB                  LDA   #<QT_TERMINAL_WIDTH   
+030C   A0 CF                  LDY   #>QT_TERMINAL_WIDTH   
+030E   20 4A B9               JSR   STROUT   
+0311   20 E7 B9               JSR   NXIN   
+0314   86 C6                  STX   TXTPTR   
+0316   84 C7                  STY   TXTPTR+1   
+0318   20 BF 00               JSR   CHRGET   
+031B   A8                     TAY      
+031C   F0 1C                  BEQ   L4136   
+031E   20 DA B7               JSR   LINGET   
+0321   A5 15                  LDA   LINNUM+1   
+0323   D0 E5                  BNE   L4106   
+0325   A5 14                  LDA   LINNUM   
+0327   C9 10                  CMP   #$10   
+0329   90 DF                  BCC   L4106   
+032B                L2829:       
+032B   85 12                  STA   Z17   
+032D                L4129:       
+032D   E9 0A                  SBC   #$0A   
+032F   B0 FC                  BCS   L4129   
+0331   49 FF                  EOR   #$FF   
+0333   E9 08                  SBC   #$08   
+0335   18                     CLC      
+0336   65 12                  ADC   Z17   
+0338   85 13                  STA   Z18   
+033A                L4136:       
+033A   A2 70                  LDX   #<RAMSTART2   ; Lo byte.
+033C   A0 02                  LDY   #>RAMSTART2   ; Hi byte.
+033E   86 73                  STX   TXTTAB   ; Lo byte.
+0340   84 74                  STY   TXTTAB+1   ; Hi byte.
+0342   A0 00                  LDY   #$00   ; A value of 0.
+0344   98                     TYA      ; Index register Y to 0.
+0345   91 73                  STA   (TXTTAB),y   ; Zap the memory at RAMSTART2 with 0. This will corrupt INIBAS! But at a known (and safe) location.
+0347   E6 73                  INC   TXTTAB   ; Bump the lo byte of the pointer.
+0349   D0 02                  BNE   L4192   ; If it doesn't wrap, no need to bump the hi byte of the pointer.
+034B   E6 74                  INC   TXTTAB+1   ; Bump the hi byte of the pointer.
+034D                L4192:       
+034D   4C 83 CF               JMP   GOTOBASIC   ; This is where we "bail out" and re-enter BASIC to complete the COLD START.
+0350                             ; We should never get here - and (of course) the following code has been copied down to page zero.
+0350                             ; 
+0350                             ; This should be loaded into page zero from address $BF and upwards (to address $D6).
+0350                             ; 
+0350                GENERIC_CHRGET:      
+0350   E6 C6                  INC   TXTPTR   ; Bump text pointer Lo byte.
+0352   D0 02                  BNE   GENERIC_CHRGOT   ; Branch if I don't need to update the Hi byte of the pointer.
+0354   E6 C7                  INC   TXTPTR+1   ; Bump text pointer Hi byte.
+0356                GENERIC_CHRGOT:      
+0356                GENERIC_TXTPTR:   EQU   GENERIC_CHRGOT + 1   
+0356   AD 60 EA               LDA   $EA60   ; *** SELF MODIFYING CODE ***
+0359   C9 20                  CMP   #" "   ; Look for a [SPACE].
+035B   F0 F3                  BEQ   GENERIC_CHRGET   ; Eat spaces.
+035D   C9 3A                  CMP   #":"   ; Look for a BASIC statement separator [":"].
+035F   F0 06                  BEQ   GENERIC_CHRRET   ; Found a match.
+0361   4C 0C D0               JMP   WEDGE   ; Enter the AH5050 firmware...
+0364   EA                     NOP      ; Unused.
+0365   EA                     NOP      ; $D4 and $D5 are used by the wedge...
+0366   EA                     NOP      ; $D4 and $D5 are used by the wedge...
+0367                GENERIC_CHRRET:      
+0367   60                     RTS      ; Exit CHRGET. Must be address $D6.
+0368                             ; 
+0368                INIBAS_END:      
+0368                             ; That's all folks!
+0368                             ; 
+0368                          END      
+
+
+RAMSTART2:          0270 DEFINED AT LINE 2
+COLD_START:         0270 DEFINED AT LINE 4
+                    > USED AT LINE 51
+GORESTART:          0000 DEFINED AT LINE 8
+                    > USED AT LINE 68
+                    > USED AT LINE 69
+                    > USED AT LINE 74
+GOSTROUT:           0003 DEFINED AT LINE 9
+                    > USED AT LINE 77
+                    > USED AT LINE 83
+                    > USED AT LINE 84
+Z14:                0010 DEFINED AT LINE 10
+                    > USED AT LINE 114
+Z17:                0012 DEFINED AT LINE 11
+                    > USED AT LINE 87
+                    > USED AT LINE 214
+                    > USED AT LINE 221
+Z18:                0013 DEFINED AT LINE 12
+                    > USED AT LINE 89
+                    > USED AT LINE 222
+LINNUM:             0014 DEFINED AT LINE 13
+                    > USED AT LINE 149
+                    > USED AT LINE 150
+                    > USED AT LINE 157
+                    > USED AT LINE 159
+                    > USED AT LINE 161
+                    > USED AT LINE 167
+                    > USED AT LINE 168
+                    > USED AT LINE 171
+                    > USED AT LINE 172
+                    > USED AT LINE 189
+                    > USED AT LINE 190
+                    > USED AT LINE 208
+                    > USED AT LINE 210
+TEMPPT:             005E DEFINED AT LINE 14
+                    > USED AT LINE 119
+LASTPT:             005F DEFINED AT LINE 15
+                    > USED AT LINE 111
+TEMPST:             0061 DEFINED AT LINE 16
+TXTTAB:             0073 DEFINED AT LINE 17
+                    > USED AT LINE 228
+                    > USED AT LINE 229
+                    > USED AT LINE 232
+                    > USED AT LINE 233
+                    > USED AT LINE 235
+MEMSIZ:             007F DEFINED AT LINE 18
+                    > USED AT LINE 191
+                    > USED AT LINE 192
+CURLIN:             0081 DEFINED AT LINE 19
+                    > USED AT LINE 56
+DSCLEN:             009B DEFINED AT LINE 20
+                    > USED AT LINE 102
+JMPADRS:            009C DEFINED AT LINE 21
+                    > USED AT LINE 75
+SHIFTSIGNEXT:       00B0 DEFINED AT LINE 22
+                    > USED AT LINE 110
+ATN:                00BB DEFINED AT LINE 23
+                    > USED AT LINE 76
+                    > USED AT LINE 81
+                    > USED AT LINE 82
+CHRGET:             00BF DEFINED AT LINE 24
+                    > USED AT LINE 97
+                    > USED AT LINE 132
+                    > USED AT LINE 204
+CHRGOT:             00C5 DEFINED AT LINE 25
+                    > USED AT LINE 181
+TXTPTR:             00C6 DEFINED AT LINE 26
+                    > USED AT LINE 130
+                    > USED AT LINE 131
+                    > USED AT LINE 202
+                    > USED AT LINE 203
+                    > USED AT LINE 245
+                    > USED AT LINE 247
+LINGET:             B7DA DEFINED AT LINE 30
+                    > USED AT LINE 182
+                    > USED AT LINE 207
+CRDO:               B900 DEFINED AT LINE 31
+                    > USED AT LINE 116
+STROUT:             B94A DEFINED AT LINE 32
+                    > USED AT LINE 126
+                    > USED AT LINE 199
+NXIN:               B9E7 DEFINED AT LINE 33
+                    > USED AT LINE 128
+                    > USED AT LINE 200
+SYNERR:             BCD0 DEFINED AT LINE 34
+                    > USED AT LINE 185
+IQERR:              BF87 DEFINED AT LINE 35
+GOTOBASIC:          CF83 DEFINED AT LINE 36
+                    > USED AT LINE 238
+QT_MEMORY_SIZE:     CFAF DEFINED AT LINE 37
+QT_TERMINAL_WIDTH:  CFBB DEFINED AT LINE 38
+WEDGE:              D00C DEFINED AT LINE 42
+                    > USED AT LINE 255
+WIDTH:              0014 DEFINED AT LINE 46
+WIDTH2:             000A DEFINED AT LINE 47
+LOOP1:              029F DEFINED AT LINE 95
+                    > USED AT LINE 99
+L40D7:              02D9 DEFINED AT LINE 156
+                    > USED AT LINE 174
+L40DD:              02E5 DEFINED AT LINE 164
+                    > USED AT LINE 158
+L40EE:              02F6 DEFINED AT LINE 180
+                    > USED AT LINE 135
+L40FA:              0302 DEFINED AT LINE 188
+                    > USED AT LINE 163
+                    > USED AT LINE 169
+                    > USED AT LINE 173
+                    > USED AT LINE 184
+L4106:              030A DEFINED AT LINE 196
+                    > USED AT LINE 209
+                    > USED AT LINE 212
+L2829:              032B DEFINED AT LINE 213
+L4129:              032D DEFINED AT LINE 215
+                    > USED AT LINE 217
+L4136:              033A DEFINED AT LINE 224
+                    > USED AT LINE 206
+L4192:              034D DEFINED AT LINE 237
+                    > USED AT LINE 234
+GENERIC_CHRGET:     0350 DEFINED AT LINE 244
+                    > USED AT LINE 96
+                    > USED AT LINE 252
+GENERIC_CHRGOT:     0356 DEFINED AT LINE 248
+                    > USED AT LINE 246
+                    > USED AT LINE 249
+GENERIC_TXTPTR:     0357 DEFINED AT LINE 249
+GENERIC_CHRRET:     0367 DEFINED AT LINE 259
+                    > USED AT LINE 254
+INIBAS_END:         0368 DEFINED AT LINE 262

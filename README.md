@@ -12,16 +12,16 @@ The memory map of the RAM is unchanged but the periheral devices have been re-wo
 These macro definitions are used in the Basic and Monitor sources:
 <br>
 
-| Name           | Location      | Device        |Original Loc.      |
-|----------------|---------------|---------------|-------------------|
-|MECBIO          |= $A400        |               |                   |
-|MECB_USER       |= MECBIO + $B0 | 6522          | $A000             |
-|MECB_RAM        |= MECBIO + $00 | 6532          | $A400             |
-|MECB_KEYBOARD   |= MECBIO + $E0 | 6532          | $A480             |
-|MECB_VIA        |= MECBIO + $C0 | 6522          | $A800             |
-|MECB_DISPLAY    |= MECBIO + $D0 | 6520          | $AC00             |
-|MECB_ACIA       |= MECBIO + $D8 | 6551          | used in mecb_bios |
-|MECB_SPARE      |= MECBIO + $A0 |               | not used          |
+| Name           | Location      | Size | Device        |Original Loc.      |
+|----------------|---------------|------|---------------|-------------------|
+|MECBIO          |= $A400        | $100 |               |                   |
+|MECB_USER       |= MECBIO + $B0 |      | 6522          | $A000             |
+|MECB_RAM        |= MECBIO + $00 |  $80 | 6532          | $A400             |
+|MECB_KEYBOARD   |= MECBIO + $E0 |      | 6532          | $A480             |
+|MECB_VIA        |= MECBIO + $C0 |      | 6522          | $A800             |
+|MECB_DISPLAY    |= MECBIO + $D0 |      | 6520          | $AC00             |
+|MECB_ACIA       |= MECBIO + $D8 |      | 6551          | used in mecb_bios |
+|MECB_SPARE      |= MECBIO + $A0 |      |               | not used          |
 
 ## RAM
 
@@ -66,6 +66,10 @@ These macro definitions are used in the Basic and Monitor sources:
 |CRTC   | 9800 | 987F |
 |DISPEN | 9880 | 98FF |
 
+
+## BASIC
+
+Basic has been rebuilt with the workspace moved from the default $0211 to now begins at $0400, this is needed to allow workspace for the display driver which uses memory around $300. I have reserved an area around $200 for serial and VFD  and other uses. The display driver instructions show how to patch the running BASIC to move the workspace, this is not needed when the BASIC ROM is rebuilt with the constant RAMSTART2 changed as above in file defines_mecb.s
 
 ## Keyboard
 

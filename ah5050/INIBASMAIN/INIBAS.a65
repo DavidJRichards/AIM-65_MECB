@@ -1,0 +1,66 @@
+
+chrget	equ	$00bf   ; This is the start/entry point for the BASIC subroutine.
+wedge	equ	$d00c   ; AH5050 firmware BASIC wedge.
+
+BASICC  equ $B000   ; BASIC Cold start entry point.
+BASICW  equ $B003   ; BASIC Warm start entry point?
+
+keyf1	equ	$010c   ; Invoke the AH5050 filer.
+COMIN   EQU $E1A1   ; Back to AIM-65 MONITOR.
+
+startv	equ	$0073   ; This is the BASIC pointer to the start of the program.
+nstart	equ	$0301   ; This is where we want the BASIC program area to start.
+	
+    ;
+	; Set code start for use by the assembler.
+	ORG $0270
+    ;
+	; Move start of BASIC pointer to new location within RAM.
+	LDA #<nstart    ; Low byte...
+	STA startv
+	LDA #>nstart    ; High byte...
+	STA startv+1
+    ;
+	; Clear start of BASIC region (so the BASIC statements NEW, etc. work).
+	LDA #$00
+	STA nstart-1    ; MS BASIC wants $00 before the program area.
+	STA nstart      ; This is a 'NULL' program in BASIC.
+	STA nstart+1    ; "   "   "   "   "   "   "   "   ".
+    ;
+	; Install the BASIC "wedge" into the AH5050 firmware.
+	; NOTE: A re-written CHRGET subroutine...
+	LDX #LENGTH     ; Number of bytes to transfer (actually one less - because we transfer index 0).
+COPY:
+	LDA source,X    ; Get a byte from INIBAS at source+X.
+	STA chrget,X    ; Store the byte into page 0 at chrget+X.
+	DEX             ; One less byte to copy...
+	BPL COPY        ; Keep copying (if more bytes to do)...
+	;
+	JMP COMIN       ; All done. I could also enter BASIC warm start or the AH5050 filer?
+	;
+	; These are the bytes for the modified CHRGET routine...
+	;
+SOURCE:
+    ;
+    DB  $E6, $C6    ; Address $00BF.
+    DB  $D0, $02
+    DB  $E6, $C7
+    DB  $AD, $60, $EA
+    DB  $C9, $20
+    DB  $F0, $F3
+    DB  $C9, $3A
+    DB  $F0, $06
+    DB  $4C, $0C, $D0
+    DB  $EA
+    DB  $EA
+    DB  $EA
+    DB  $60         ; Address $00D6.
+    ;
+LENGTH  EQU $-SOURCE-1
+
+    ; Needs to be BELOW address $0300. This is where BASIC has been modified to
+    ; store its program. We will have obliterated this address with a null
+    ; program above. So, if we exceed this limit, we will get corrupted!
+    ;
+	END
+	

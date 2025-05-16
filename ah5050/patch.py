@@ -36,4 +36,4 @@ for arg in sys.argv[2:]:
         sys.exit(-1)
      data[addr+1] = new_hi
 
-#open(sys.argv[1],"wb").write(data)
+open(sys.argv[1],"wb").write(data)

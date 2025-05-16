@@ -1,0 +1,266 @@
+
+RAMSTART2			equ		$0270	; This is where our (new) BASIC program is to start (minus 1). Was $0300. Now $0270.
+
+COLD_START			equ		$0270	; This is where INIBAS loads and runs.
+
+					; Page zero definitions sorted in address order.
+					;
+GORESTART			equ		$00		; New-line jump.
+GOSTROUT			equ		$03		; USR jump?
+Z14					equ		$10		; Input flag: suppress output if negative.
+Z17					equ		$12		; Width.
+Z18					equ		$13		; Input column limit.
+LINNUM				equ		$14		; Integer address.
+TEMPPT				equ		$5E		; Temporary string descriptor stack pointer.
+LASTPT				equ		$5F		; Last temporary string pointer.
+TEMPST				equ		$61		; Stack of descriptors for temporary strings.
+TXTTAB				equ		$73		; Pointer: Start-of-BASIC memory.
+MEMSIZ				equ		$7F		; Pointer: Limit of BASIC memory.
+CURLIN				equ		$81		; Current BASIC line number.
+DSCLEN				equ		$9B		; Work area: garbage yardstick.
+JMPADRS				equ		$9C		; Jump vector for functions.
+SHIFTSIGNEXT		equ		$B0		; Acc No. 1 high-order (overflow) word.
+ATN					equ		$BB		; Error jump.
+CHRGET				equ		$BF		; Subroutine: Get BASIC char.
+CHRGOT				equ		$C5		; 
+TXTPTR				equ		$C6		; BASIC pointer.
+
+					; BASIC entry points sorted in address order.
+					;
+LINGET				equ		$B7DA	; Get fixed-point number from BASIC line.
+CRDO				equ		$B900	; Output CRLF.
+STROUT				equ		$B94A	; Print string from memory.
+NXIN				equ		$B9E7	; Prompt and receive input.
+SYNERR				equ		$BCD0	; Print SN (syntax) and exit.
+IQERR				equ		$BF87	; Illegal Quantity error.
+GOTOBASIC			equ		$CF83	; Complete the BASIC COLD START.
+QT_MEMORY_SIZE		equ		$CFAF	; Text string for "MEMORY SIZE".
+QT_TERMINAL_WIDTH	equ		$CFBB	; Text string for "WIDTH".
+
+					; AH5050 firmware entry point for BASIC enhancements.
+					;
+WEDGE				equ		$D00C	; AH5050 firmware entry point for BASIC enhancements.
+
+					; Terminal characteristics.
+					;
+WIDTH				equ		 20
+WIDTH2				equ		 10
+
+		; This is where INIBAS is going to load and run...
+		;
+		org		COLD_START
+		
+		; Default BASIC to immediate mode commands.
+		;
+        ldx     #$FF
+        stx     CURLIN+1
+
+		; Define the initial stack pointer for the CPU.
+		;
+        ldx     #$FE
+        txs
+
+		; Initialise the 'jump vector' at location 0 to point back into us for a cold restart.
+		; This is overridden once BASIC is up and running.
+		;
+        lda     #<COLD_START		; Lo byte of pointer.
+        ldy     #>COLD_START		; Hi byte of pointer.
+        sta     GORESTART+1			; Lo byte of pointer.
+        sty     GORESTART+2			; Hi byte of pointer.
+
+		; Patch a 6502 'jmp' instruction to where they are required...
+		;
+        lda     #$4C				; 6502 'jmp' instruction.
+        sta     GORESTART			; Store it here...
+        sta     JMPADRS				; And here...
+        sta     ATN					; And here...
+        sta     GOSTROUT			; And here...
+
+        lda     #<IQERR				; Lo. Some sort of error pointer?
+        ldy     #>IQERR				; Hi. Some sort of error pointer?
+        sta     ATN+1				; Store Lo byte.
+        sty     ATN+2				; Store Hi byte.
+        sta     GOSTROUT+1			; Store Lo byte.
+        sty     GOSTROUT+2			; Store Hi byte.
+
+        lda     #WIDTH				; Initialise the default terminal width.
+        sta     Z17					; "   "   "   "   "   "   "   "   "   "
+        lda     #WIDTH2				; Initialise the default input column width.
+        sta     Z18					; "   "   "   "   "   "   "   "   "   "   "
+
+		; Copy my generic CHRGET into page zero memory...
+		
+        ldx     #$17				; Length of GENERIC_CHRGET code to copy. Note that index 0 also gets copied!
+
+LOOP1:
+        lda     GENERIC_CHRGET,x	; From location (in INIBAS).
+        sta     CHRGET,x			; To location (in page 0).
+        dex							; One less to copy...
+        bpl     LOOP1				; Copy from index [$17] back to index [$00].
+
+        lda     #$03				; No idea!
+        sta     DSCLEN				; No idea!
+
+		; I assume at this point (with the original 'bne' instruction in the loop above) that index register X is assumed to be zero here?!
+		;
+        ; This was the instruction that was here: 'txa'.
+        ;
+        lda		#0					; Make the accumulator 0 then...
+        
+        sta     SHIFTSIGNEXT		; No idea!
+        sta     LASTPT+1			; No idea!
+
+        pha							; This is saving the accumulator on the stack for some reason... Where is this 'pla' I ask myself?!
+        sta     Z14					; No idea!
+
+        jsr     CRDO				; Output CRLF.
+
+        ldx     #TEMPST				; No idea.
+        stx     TEMPPT				; No idea.
+        
+        ; This is where we identify the MEMORY SIZE. Be this from the USER in response to the question,
+        ; or determined by the USER entering a <CR> and the code performing a destructive memory test.
+        
+        lda     #<QT_MEMORY_SIZE	; Lo address of "MEMORY SIZE" text to be displayed.
+        ldy     #>QT_MEMORY_SIZE	; Hi address of "MEMORY SIZE" text to be displayed.
+        jsr     STROUT				; Display the specified text message to the user.
+
+        jsr     NXIN				; Prompt the user and receive input from them.
+
+        stx     TXTPTR				; Lo byte of buffer address?
+        sty     TXTPTR+1			; Hi byte of buffer address?
+        jsr     CHRGET				; Get a character. I assume this is using our CHRGET subroutine?!
+
+        tay							; Character just 'got' into Y for safe keeping. NO! It sets the flags!
+        bne     L40EE				; Is this the user entering something (as opposed to just a NEWLINE)?
+        
+        ;; This is where we want our BASIC program to start... DO I EVEN NEED THIS CODE HERE?!
+        ;;
+        ;;lda     #<RAMSTART2		; Lo.
+        ;;ldy     #>RAMSTART2		; Hi.
+        ;;sta     TXTTAB			; Lo byte.
+        ;;sty     TXTTAB+1			; Hi byte.
+        
+        ; This is where we want our destructive memory test to start from...
+        ; And not to corrupt INIBAS itself!
+        ;
+        lda		#<INIBAS_END		; Lo.
+        ldy		#>INIBAS_END		; Hi.
+        sta     LINNUM				; Lo byte.
+        sty     LINNUM+1			; Hi byte.
+        
+        ldy     #$00				; Default index register Y to 0 so we can use indexed addressing.
+
+		; I am guessing that this code is performing a destructive memory test...
+		
+L40D7:
+        inc     LINNUM				; Bump the Lo byte of the pointer.
+        bne     L40DD				; If it didn't wrap around to 0 no need to bump the Hi byte.
+        inc     LINNUM+1			; Bump the Hi byte of the pointer.
+		; AIM65: hard RAM top limit is $A000
+        lda     LINNUM+1			; Pick up the Hi byte of the pointer.
+        cmp     #$A0				; Has it wrapped over to $A0?
+        beq     L40FA				; If it has, then we will prematurely call it a day and exit!
+L40DD:
+
+        lda     #$55 				; Destructive memory value = 01010101.
+        sta     (LINNUM),y			; Store value away to memory.
+        cmp     (LINNUM),y			; Is it the same as we stored?
+        bne     L40FA				; If not, we must have just passed the end of memory.
+        asl     a					; Destructive memory value = 10101010.
+        sta     (LINNUM),y			; Store value away to the SAME memory address. 
+        cmp     (LINNUM),y			; Is it the same as we stored?
+        bne     L40FA				; If not, we must have just passed the end of memory.
+        beq     L40D7				; Keep looping if there is real memory here...
+		;
+		; We shouldn't get here as we have a pair of bne/beq instructions just before here.
+		
+		; The user entered a MEMORY SIZE limit (possibly)?
+		
+L40EE:
+        jsr     CHRGOT				; ???
+        jsr     LINGET				; ??? Line number input?
+        tay							; Set the flags based upon the character in the accumulator.
+        beq     L40FA				; A value of ZERO indicates 'all OK' by the looks of it.
+        jmp     SYNERR				; SYNTAX error. Does this cold restart I wonder?
+
+		; Presumably the MEMORY SIZE answer (in all cases) is stored in LINNUM (and LINNUM+1 of course).
+L40FA:
+        lda     LINNUM				; Lo byte.
+        ldy     LINNUM+1			; Hi byte.
+        sta     MEMSIZ				; Lo byte.
+        sty     MEMSIZ+1			; Hi byte.
+
+		; This is were we identify the WIDTH of the terminal (output device).
+		
+L4106:
+        lda     #<QT_TERMINAL_WIDTH
+        ldy     #>QT_TERMINAL_WIDTH
+        jsr     STROUT
+        jsr     NXIN
+
+        stx     TXTPTR
+        sty     TXTPTR+1
+        jsr     CHRGET
+        tay
+        beq     L4136
+        jsr     LINGET
+        lda     LINNUM+1
+        bne     L4106
+        lda     LINNUM
+        cmp     #$10
+        bcc     L4106
+L2829:
+        sta     Z17
+L4129:
+        sbc     #$0A
+        bcs     L4129
+        eor     #$FF
+        sbc     #$08
+        clc
+        adc     Z17
+        sta     Z18
+
+L4136:
+        ldx     #<RAMSTART2			; Lo byte.
+        ldy     #>RAMSTART2			; Hi byte.
+
+        stx     TXTTAB				; Lo byte.
+        sty     TXTTAB+1			; Hi byte.
+        ldy     #$00				; A value of 0.
+        tya							; Index register Y to 0.
+        sta     (TXTTAB),y			; Zap the memory at RAMSTART2 with 0. This will corrupt INIBAS! But at a known (and safe) location.
+        inc     TXTTAB				; Bump the lo byte of the pointer.
+        bne     L4192				; If it doesn't wrap, no need to bump the hi byte of the pointer.
+        inc     TXTTAB+1			; Bump the hi byte of the pointer.
+
+L4192:
+		jmp		GOTOBASIC			; This is where we 'bail out' and re-enter BASIC to complete the COLD START.
+
+		; We should never get here - and (of course) the following code has been copied down to page zero.
+		
+		; This should be loaded into page zero from address $BF and upwards (to address $D6).
+		
+GENERIC_CHRGET:
+		inc		TXTPTR				; Bump text pointer Lo byte.
+		bne		GENERIC_CHRGOT		; Branch if I don't need to update the Hi byte of the pointer.
+		inc		TXTPTR+1			; Bump text pointer Hi byte.
+GENERIC_CHRGOT:
+GENERIC_TXTPTR	equ		GENERIC_CHRGOT + 1
+		lda		$EA60				; *** SELF MODIFYING CODE ***
+		cmp		#' '				; Look for a [SPACE].
+		beq		GENERIC_CHRGET		; Eat spaces.
+		cmp		#':'				; Look for a BASIC statement separator [':'].
+		beq		GENERIC_CHRRET		; Found a match.
+		jmp		WEDGE				; Enter the AH5050 firmware...
+		nop							; Unused.
+		nop							; $D4 and $D5 are used by the wedge...
+		nop							; $D4 and $D5 are used by the wedge...
+GENERIC_CHRRET:
+		rts							; Exit CHRGET. Must be address $D6.
+		
+INIBAS_END:
+
+		; That's all folks!
+		
+		end
